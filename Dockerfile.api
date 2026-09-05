@@ -1,0 +1,21 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+COPY src/Gestoque.Domain/Gestoque.Domain.csproj src/Gestoque.Domain/
+COPY src/Gestoque.Application/Gestoque.Application.csproj src/Gestoque.Application/
+COPY src/Gestoque.Infrastructure/Gestoque.Infrastructure.csproj src/Gestoque.Infrastructure/
+COPY src/Gestoque.Api/Gestoque.Api.csproj src/Gestoque.Api/
+RUN dotnet restore src/Gestoque.Api/Gestoque.Api.csproj
+
+COPY src/ src/
+RUN dotnet publish src/Gestoque.Api/Gestoque.Api.csproj \
+    --configuration Release \
+    --output /app/publish \
+    --no-restore
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+WORKDIR /app
+ENV ASPNETCORE_HTTP_PORTS=8080
+EXPOSE 8080
+COPY --from=build /app/publish .
+ENTRYPOINT ["dotnet", "Gestoque.Api.dll"]

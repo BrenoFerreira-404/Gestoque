@@ -1,0 +1,165 @@
+@page "/movimentacoes"
+@inject IMediator Mediator
+@inject TenantSessionState TenantSession
+@inject NavigationManager Navigation
+
+<PageTitle>Extrato de Movimentações - Gestoque Pro</PageTitle>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+        <h2 style="font-weight: 700; color: #1e293b; margin: 0;">Extrato de Movimentações (Kardex)</h2>
+        <p style="color: #64748b; margin: 0; font-size: 0.95rem;">
+            Empresa: <strong style="color: #0284c7;">@TenantSession.SelectedTenantName</strong> | Histórico completo de entradas, saídas e ajustes de estoque
+        </p>
+    </div>
+
+    <div style="display: flex; gap: 0.75rem;">
+        <RadzenButton Text="Registrar Entrada" Icon="input" ButtonStyle="ButtonStyle.Success" Click="@(() => Navigation.NavigateTo("entradas"))" />
+        <RadzenButton Text="Registrar Saída" Icon="output" ButtonStyle="ButtonStyle.Danger" Click="@(() => Navigation.NavigateTo("saidas"))" />
+    </div>
+</div>
+
+<RadzenCard Style="background: white; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <div>
+            <RadzenDropDown TValue="MovementType?" Data="@tiposMovimento" TextProperty="Text" ValueProperty="Value"
+                            @bind-Value="@selectedType" Placeholder="Todos os Tipos..." Style="width: 200px;" Change="@LoadMovementsAsync" />
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 0.85rem; color: #64748b;">De:</span>
+            <RadzenDatePicker @bind-Value="@startDate" DateFormat="dd/MM/yyyy" Style="width: 140px;" Change="@LoadMovementsAsync" />
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 0.85rem; color: #64748b;">Até:</span>
+            <RadzenDatePicker @bind-Value="@endDate" DateFormat="dd/MM/yyyy" Style="width: 140px;" Change="@LoadMovementsAsync" />
+        </div>
+
+        <RadzenButton Text="Filtrar" Icon="search" ButtonStyle="ButtonStyle.Light" Click="@LoadMovementsAsync" />
+        <RadzenButton Text="Limpar" Icon="clear" ButtonStyle="ButtonStyle.Secondary" Click="@ClearFilters" />
+    </div>
+</RadzenCard>
+
+@if (loading)
+{
+    <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Style="margin-bottom: 1.5rem;" />
+}
+else
+{
+    <RadzenCard Style="background: white; border-radius: 8px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <RadzenDataGrid Data="@movements" TItem="StockMovementDto" AllowPaging="true" PageSize="15" AllowSorting="true"
+                        AllowFiltering="true" FilterMode="FilterMode.Simple" EmptyText="Nenhuma movimentação encontrada para os filtros aplicados.">
+            <Columns>
+                <RadzenDataGridColumn Property="MovementDate" Title="Data / Hora" Width="130px">
+                    <Template Context="m">
+                        <span style="font-size: 0.85rem; color: #334155;">@m.MovementDate.ToString("dd/MM/yyyy HH:mm")</span>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="MovementType" Title="Tipo" Width="110px">
+                    <Template Context="m">
+                        @if (m.MovementType == MovementType.Entrada)
+                        {
+                            <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="ENTRADA" />
+                        }
+                        else if (m.MovementType == MovementType.Saida)
+                        {
+                            <RadzenBadge BadgeStyle="BadgeStyle.Danger" Text="SAÍDA" />
+                        }
+                        else
+                        {
+                            <RadzenBadge BadgeStyle="BadgeStyle.Info" Text="AJUSTE" />
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="ProductName" Title="Alimento / Produto" Width="260px">
+                    <Template Context="m">
+                        <strong style="color: #0f172a;">@m.ProductName</strong>
+                        @if (!string.IsNullOrEmpty(m.BatchNumber))
+                        {
+                            <span style="display: block; font-size: 0.75rem; color: #64748b;">Lote: @m.BatchNumber</span>
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="Quantity" Title="Quantidade" Width="110px">
+                    <Template Context="m">
+                        <span style="font-weight: 700; font-size: 1.05rem; color: @(m.MovementType == MovementType.Entrada ? "#16a34a" : (m.MovementType == MovementType.Saida ? "#dc2626" : "#2563eb"));">
+                            @(m.MovementType == MovementType.Entrada ? "+" : (m.MovementType == MovementType.Saida ? "-" : ""))@m.Quantity.ToString("N0")
+                        </span>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="MovementReason" Title="Motivo" Width="160px">
+                    <Template Context="m">
+                        <span style="font-size: 0.85rem; color: #475569;">@m.MovementReason</span>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="ExpiryDate" Title="Validade Lote" Width="110px">
+                    <Template Context="m">
+                        <span>@(m.ExpiryDate.HasValue ? m.ExpiryDate.Value.ToString("dd/MM/yyyy") : "-")</span>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="Notes" Title="Documento / Observações" Width="200px">
+                    <Template Context="m">
+                        <span style="font-size: 0.8rem; color: #64748b;">
+                            @(string.IsNullOrEmpty(m.DocumentNumber) ? "" : $"Doc: {m.DocumentNumber} | ")@m.Notes
+                        </span>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenCard>
+}
+
+@code {
+    private bool loading = true;
+    private List<StockMovementDto> movements = new();
+    private MovementType? selectedType;
+    private DateTime? startDate = DateTime.Today.AddDays(-30);
+    private DateTime? endDate = DateTime.Today.AddDays(1);
+
+    private record TipoItem(MovementType? Value, string Text);
+    private List<TipoItem> tiposMovimento = new()
+    {
+        new(null, "Todos os Tipos"),
+        new(MovementType.Entrada, "Apenas Entradas"),
+        new(MovementType.Saida, "Apenas Saídas"),
+        new(MovementType.Ajuste, "Apenas Ajustes")
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMovementsAsync();
+    }
+
+    private async Task LoadMovementsAsync()
+    {
+        loading = true;
+        try
+        {
+            movements = await Mediator.Send(new GetMovimentacoesQuery(
+                Type: selectedType,
+                StartDate: startDate,
+                EndDate: endDate
+            ));
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task ClearFilters()
+    {
+        selectedType = null;
+        startDate = null;
+        endDate = null;
+        await LoadMovementsAsync();
+    }
+}
+

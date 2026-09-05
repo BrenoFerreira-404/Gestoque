@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plano de Arquitetura & Especificação de Negócio - Gestoque Pro</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Mermaid JS para renderizar diagramas de arquitetura e ER -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+    </script>
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --primary-light: #e0f2fe;
+            --success: #16a34a;
+            --warning: #f59e0b;
+            --danger: #dc2626;
+            --slate-900: #0f172a;
+            --slate-800: #1e293b;
+            --slate-700: #334155;
+            --slate-600: #475569;
+            --slate-200: #e2e8f0;
+            --slate-100: #f1f5f9;
+            --slate-50: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--slate-100);
+            color: var(--slate-800);
+            line-height: 1.65;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            border: 1px solid var(--slate-200);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            padding: 3rem 2.5rem;
+            position: relative;
+        }
+
+        .header .badge {
+            display: inline-block;
+            background: rgba(2, 132, 199, 0.3);
+            border: 1px solid #38bdf8;
+            color: #38bdf8;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1.25;
+            margin-bottom: 1rem;
+            color: #f8fafc;
+        }
+
+        .header p {
+            font-size: 1.05rem;
+            color: #94a3b8;
+            max-width: 850px;
+        }
+
+        .meta-bar {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            flex-wrap: wrap;
+        }
+
+        .meta-bar span strong {
+            color: white;
+        }
+
+        .content {
+            padding: 2.5rem;
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--slate-900);
+            margin: 2.5rem 0 1.25rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--slate-200);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        h2:first-of-type {
+            margin-top: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--slate-800);
+            margin: 1.75rem 0 0.75rem 0;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--slate-700);
+        }
+
+        ul, ol {
+            margin: 0 0 1.5rem 1.5rem;
+            color: var(--slate-700);
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Tabelas */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.95rem;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid var(--slate-200);
+        }
+
+        th {
+            background-color: var(--slate-50);
+            color: var(--slate-900);
+            font-weight: 700;
+            text-align: left;
+            padding: 0.85rem 1rem;
+            border-bottom: 2px solid var(--slate-200);
+        }
+
+        td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid var(--slate-200);
+            color: var(--slate-700);
+        }
+
+        tr:hover td {
+            background-color: #f8fafc;
+        }
+
+        /* Callouts / Alertas */
+        .callout {
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+            background: white;
+        }
+
+        .callout-info {
+            border-color: var(--primary);
+            background-color: #f0f9ff;
+            color: #0369a1;
+        }
+
+        .callout-warning {
+            border-color: var(--warning);
+            background-color: #fffbeb;
+            color: #b45309;
+        }
+
+        .callout-success {
+            border-color: var(--success);
+            background-color: #f0fdf4;
+            color: #15803d;
+        }
+
+        /* Diagramas */
+        .diagram-box {
+            background: #ffffff;
+            border: 1px solid var(--slate-200);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            text-align: center;
+            overflow-x: auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        /* Código */
+        pre {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 1.25rem;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.88rem;
+            margin: 1.25rem 0;
+            line-height: 1.5;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: #e2e8f0;
+            color: #0f172a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        .badge-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .badge-green { background: #dcfce7; color: #15803d; }
+        .badge-yellow { background: #fef3c7; color: #b45309; }
+        .badge-red { background: #fee2e2; color: #b91c1c; }
+
+        .footer {
+            background-color: var(--slate-50);
+            border-top: 1px solid var(--slate-200);
+            padding: 1.5rem 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--slate-600);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: var(--primary);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        @media print {
+            body { padding: 0; background: white; }
+            .container { box-shadow: none; border: none; }
+            .btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="badge">Documentação Técnica Oficial</div>
+        <h1>Plano de Arquitetura & Especificação de Negócio</h1>
+        <p>Sistema de Controle de Estoque Multi-Empresa desenvolvido em .NET 8 C#, Blazor Interactive, Radzen Blazor Components, Clean Architecture, DDD, CQRS e Entity Framework Core com isolamento Multi-tenant.</p>
+        
+        <div class="meta-bar">
+            <span><strong>Solução:</strong> Gestoque.sln</span>
+            <span><strong>Framework:</strong> .NET 8 LTS C#</span>
+            <span><strong>Padrões:</strong> DDD, Clean Code, CQRS (MediatR), Multi-tenant EF Core</span>
+            <span><strong>Frontend:</strong> Blazor Server + Radzen Components</span>
+            <span><strong>Status:</strong> Arquitetado, Implementado e Validado</span>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- PASSO 1 -->
+        <h2>1. Passo 1: Diagnóstico da Planilha Excel Atual</h2>
+        <p>O sistema foi projetado a partir da engenharia reversa detalhada da planilha legada <code>29_07_2026 planilha atualizada.xlsx</code>, atualmente utilizada pela cliente para o controle de suprimentos e alimentação.</p>
+
+        <h3>1.1. Mapeamento das Abas Encontradas</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Aba</th>
+                    <th>Registros</th>
+                    <th>Função no Excel</th>
+                    <th>Gargalos & Riscos Identificados</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>MENU</strong></td>
+                    <td>1</td>
+                    <td>Capa estética inicial ("Controle de Estoque").</td>
+                    <td>Apenas visual; sem dashboards, gráficos ou atalhos funcionais.</td>
+                </tr>
+                <tr>
+                    <td><strong>ESTOQUE</strong></td>
+                    <td>169 itens</td>
+                    <td>Catálogo consolidado: Descrição, Saldo, Validade, Marca, Estoque Mínimo e Observações.</td>
+                    <td>Não rastreia múltiplos lotes com validades distintas. Uma nova entrega sobrescrevia a validade anterior.</td>
+                </tr>
+                <tr>
+                    <td><strong>ENTRADA ENTREGA</strong></td>
+                    <td>129 registros</td>
+                    <td>Registro de entregas por Fornecedor (Vinaque, Xavier, MSX, Imperial...), Quantidade e Data.</td>
+                    <td>Texto livre despadronizado; risco de duplicidade de nomes de produtos e fornecedores.</td>
+                </tr>
+                <tr>
+                    <td><strong>ENTRADA</strong></td>
+                    <td>114 itens x 31 dias</td>
+                    <td>Matriz de entradas diárias no mês (colunas Dia 1 ao 31).</td>
+                    <td>Vinculação frágil por número de linha (Row ID). Sem rastreamento de usuário responsável.</td>
+                </tr>
+                <tr>
+                    <td><strong>SAÍDA</strong></td>
+                    <td>114 itens x 31 dias</td>
+                    <td>Matriz de saídas diárias para consumo da cozinha e perdas.</td>
+                    <td>Se uma linha do estoque for movida, desalinha as saídas. Sem distinção de motivo (consumo vs descarte).</td>
+                </tr>
+                <tr>
+                    <td><strong>DOAÇÃO</strong></td>
+                    <td>114 itens</td>
+                    <td>Registro específico de alimentos recebidos por doação.</td>
+                    <td>Descolado da movimentação contínua; preenchimento manual esporádico.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>1.2. Regras Críticas e Legenda Visual do Estoque</h3>
+        <ul>
+            <li><span class="badge-pill badge-green">VERDE</span> <strong>Validade Confortável:</strong> Itens com prazo de vencimento superior a 60 dias.</li>
+            <li><span class="badge-pill badge-yellow">AMARELO</span> <strong>Próximo ao Vencimento:</strong> Itens vencendo em até 30 dias (requer consumo prioritário pela regra <strong>FEFO</strong> - <em>First Expire, First Out</em>).</li>
+            <li><span class="badge-pill badge-red">VERMELHO</span> <strong>Crítico / Vencido:</strong> Itens vencidos (bloqueados para consumo) ou com saldo abaixo do estoque mínimo.</li>
+            <li><strong>Item Único:</strong> Marcação para alimentos de consumo pontual ou sem previsão imediata de reposição.</li>
+        </ul>
+
+        <hr style="border: 0; border-top: 1px solid var(--slate-200); margin: 2rem 0;">
+
+        <!-- PASSO 2 -->
+        <h2>2. Passo 2: Lógica de Negócio & Modelo Multi-Empresa</h2>
+
+        <div class="callout callout-info">
+            <strong>Garantia de Isolamento Multi-Empresa:</strong> O Administrador Geral pode cadastrar N empresas. Cada empresa opera em seu próprio silo de dados (catálogo, saldos, lotes, fornecedores e movimentações). O <strong>Entity Framework Core</strong> aplica filtros automáticos em tempo de compilação, tornando impossível o cruzamento acidental de dados.
+        </div>
+
+        <h3>2.1. Níveis de Acesso (RBAC)</h3>
+        <ul>
+            <li><strong>SuperAdmin (Você):</strong> Acesso a todas as empresas, com seletor no cabeçalho (*Company Switcher*) para alternar a visão em tempo real e cadastrar novos tenants.</li>
+            <li><strong>CompanyAdmin:</strong> Administrador de uma empresa específica (cadastros, relatórios e parâmetros).</li>
+            <li><strong>StockOperator:</strong> Despenseiro / Operador de Estoque (lançamento diário de entregas, baixas da cozinha e doações).</li>
+        </ul>
+
+        <h3>2.2. Fluxo Inteligente de Movimentação (FEFO)</h3>
+        <p>No momento da saída do alimento para a cozinha, se o operador não especificar o lote manualmente, o sistema busca automaticamente o lote com vencimento mais próximo (regra FEFO) e decrementa seu saldo, minimizando o desperdício de alimentos perecíveis.</p>
+
+        <hr style="border: 0; border-top: 1px solid var(--slate-200); margin: 2rem 0;">
+
+        <!-- ARQUITETURA TÉCNICA -->
+        <h2>3. Arquitetura Técnica .NET C# (Clean Architecture + DDD)</h2>
+
+        <h3>3.1. Diagrama em Camadas</h3>
+        <div class="diagram-box">
+            <pre class="mermaid">
+graph TD
+    subgraph UI ["Camada de Apresentação (Blazor + Radzen)"]
+        Components["Componentes Radzen (RadzenDataGrid, RadzenCard, RadzenDropDown)"]
+        State["TenantSessionState (Seletor de Empresa Ativa)"]
+    end
+
+    subgraph AppLayer ["Camada de Aplicação (CQRS com MediatR)"]
+        Commands["Commands (RegistrarEntrada, RegistrarSaida, CreateProduct, CreateTenant)"]
+        Queries["Queries (GetPosicaoEstoque, GetDashboardKpis, GetMovimentacoes)"]
+        Handlers["Command & Query Handlers"]
+    end
+
+    subgraph DomainLayer ["Camada de Domínio (DDD Core)"]
+        Entities["Entidades (Product, Batch, Tenant, StockMovement, Supplier)"]
+        ValueObjects["Enums & Interfaces (ITenantEntity, IAuditableEntity)"]
+    end
+
+    subgraph InfraLayer ["Camada de Infraestrutura (Data & Services)"]
+        EFCore["EF Core DbContext (Global Query Filters)"]
+        PostgresDB["Banco de Dados (PostgreSQL)"]
+        Importer["ExcelImporterService (ClosedXML)"]
+    end
+
+    UI --> AppLayer
+    AppLayer --> DomainLayer
+    InfraLayer --> DomainLayer
+    AppLayer --> InfraLayer
+            </pre>
+        </div>
+
+        <h3>3.2. Estrutura de Projetos da Solução</h3>
+        <pre>
+Gestoque.sln
+│
+├── src/
+│   ├── 1. Core/
+│   │   ├── Gestoque.Domain/              # Entidades puras, Enums e Interfaces (DDD)
+│   │   └── Gestoque.Application/         # CQRS, Commands, Queries, DTOs e MediatR
+│   │
+│   ├── 2. Infrastructure/
+│   │   └── Gestoque.Infrastructure/      # EF Core DbContext, Multi-Tenancy e ExcelImporter
+│   │
+│   └── 3. Presentation/
+│       └── Gestoque.Web/                 # Blazor Server Interativo com Radzen Blazor
+│
+└── tests/
+    └── Gestoque.Tests/                   # Testes automatizados (Multi-tenancy, Importador, FEFO)
+        </pre>
+
+        <hr style="border: 0; border-top: 1px solid var(--slate-200); margin: 2rem 0;">
+
+        <!-- MODELO DE DADOS -->
+        <h2>4. Modelo Entidade-Relacionamento (ERD)</h2>
+        <div class="diagram-box">
+            <pre class="mermaid">
+erDiagram
+    TENANT ||--o{ PRODUCT : "possui"
+    TENANT ||--o{ SUPPLIER : "possui"
+    TENANT ||--o{ STOCK_MOVEMENT : "audita"
+    
+    PRODUCT ||--o{ BATCH : "possui lotes"
+    PRODUCT ||--o{ STOCK_MOVEMENT : "movimenta"
+    
+    SUPPLIER ||--o{ BATCH : "fornece"
+    BATCH ||--o{ STOCK_MOVEMENT : "origina baixa"
+
+    TENANT {
+        Guid Id PK
+        string RazaoSocial
+        string NomeFantasia
+        string Cnpj
+        bool IsActive
+    }
+
+    PRODUCT {
+        Guid Id PK
+        Guid TenantId FK
+        string Name
+        string Brand
+        UnitOfMeasure Unit
+        decimal CurrentStock
+        decimal MinimumStock
+        bool IsUniqueItem
+    }
+
+    BATCH {
+        Guid Id PK
+        Guid TenantId FK
+        Guid ProductId FK
+        string BatchNumber
+        DateTime ExpiryDate
+        decimal InitialQuantity
+        decimal CurrentQuantity
+    }
+
+    STOCK_MOVEMENT {
+        Guid Id PK
+        Guid TenantId FK
+        Guid ProductId FK
+        Guid BatchId FK
+        MovementType MovementType
+        MovementReason MovementReason
+        decimal Quantity
+        DateTime MovementDate
+        string DocumentNumber
+    }
+
+    SUPPLIER {
+        Guid Id PK
+        Guid TenantId FK
+        string Name
+        string CnpjCpf
+        string Phone
+    }
+            </pre>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--slate-200); margin: 2rem 0;">
+
+        <!-- IMPLEMENTAÇÃO MULTI-TENANT -->
+        <h2>5. Código Real do Isolamento Multi-Tenant no EF Core</h2>
+        <p>No <code>GestoqueDbContext</code>, o filtro global garante que nenhuma consulta retorne dados de outra empresa:</p>
+        <pre><code class="language-csharp">// Filtro Global Multi-Empresa
+modelBuilder.Entity&lt;Product&gt;().HasQueryFilter(e => 
+    !_currentTenantService.TenantId.HasValue || e.TenantId == _currentTenantService.TenantId);
+
+modelBuilder.Entity&lt;Batch&gt;().HasQueryFilter(e => 
+    !_currentTenantService.TenantId.HasValue || e.TenantId == _currentTenantService.TenantId);
+
+modelBuilder.Entity&lt;StockMovement&gt;().HasQueryFilter(e => 
+    !_currentTenantService.TenantId.HasValue || e.TenantId == _currentTenantService.TenantId);
+
+modelBuilder.Entity&lt;Supplier&gt;().HasQueryFilter(e => 
+    !_currentTenantService.TenantId.HasValue || e.TenantId == _currentTenantService.TenantId);
+</code></pre>
+
+        <hr style="border: 0; border-top: 1px solid var(--slate-200); margin: 2rem 0;">
+
+        <!-- TELAS RADZEN -->
+        <h2>6. Interface do Usuário (Radzen Blazor)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Rota</th>
+                    <th>Tela</th>
+                    <th>Componentes Radzen Utilizados</th>
+                    <th>Funcionalidade</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>/</code></td>
+                    <td><strong>Dashboard</strong></td>
+                    <td><code>RadzenCard</code>, <code>RadzenBadge</code>, <code>RadzenDataGrid</code></td>
+                    <td>Métricas consolidadas, itens abaixo do mínimo, perto de vencer e movimentação do mês.</td>
+                </tr>
+                <tr>
+                    <td><code>/estoque</code></td>
+                    <td><strong>Posição do Estoque</strong></td>
+                    <td><code>RadzenDataGrid</code>, <code>RadzenTextBox</code>, <code>RadzenCheckBox</code></td>
+                    <td>Tabela em tempo real com farol de validade colorido, pesquisa rápida e ajuste de balanço.</td>
+                </tr>
+                <tr>
+                    <td><code>/entradas</code></td>
+                    <td><strong>Entrada de Mercadoria</strong></td>
+                    <td><code>RadzenDropDown</code>, <code>RadzenNumeric</code>, <code>RadzenDatePicker</code></td>
+                    <td>Recebimento de fornecedor com lote, validade, nota fiscal e histórico recente.</td>
+                </tr>
+                <tr>
+                    <td><code>/saidas</code></td>
+                    <td><strong>Saída & Baixas</strong></td>
+                    <td><code>RadzenDropDown</code>, <code>RadzenNumeric</code>, <code>RadzenDatePicker</code></td>
+                    <td>Baixa rápida da cozinha com consumo inteligente por lote FEFO.</td>
+                </tr>
+                <tr>
+                    <td><code>/doacoes</code></td>
+                    <td><strong>Doações</strong></td>
+                    <td><code>RadzenDropDown</code>, <code>RadzenTextArea</code>, <code>RadzenDatePicker</code></td>
+                    <td>Registro detalhado de insumos recebidos via doação.</td>
+                </tr>
+                <tr>
+                    <td><code>/movimentacoes</code></td>
+                    <td><strong>Extrato (Kardex)</strong></td>
+                    <td><code>RadzenDataGrid</code>, <code>RadzenDatePicker</code>, <code>RadzenBadge</code></td>
+                    <td>Auditoria completa de todas as entradas, saídas e ajustes com data e responsável.</td>
+                </tr>
+                <tr>
+                    <td><code>/empresas</code></td>
+                    <td><strong>Gestão Multi-Empresa</strong></td>
+                    <td><code>RadzenCard</code>, <code>RadzenButton</code>, <code>RadzenTextBox</code></td>
+                    <td>Painel SuperAdmin para cadastrar empresas e alternar instantaneamente entre elas.</td>
+                </tr>
+                <tr>
+                    <td><code>/importar-excel</code></td>
+                    <td><strong>Migração Excel</strong></td>
+                    <td><code>RadzenProgressBar</code>, <code>RadzenButton</code>, <code>RadzenIcon</code></td>
+                    <td>Importação em 1 clique dos 169 produtos e fornecedores da planilha legada.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <hr style="border: 0; border-top: 1px solid var(--slate-200); margin: 2rem 0;">
+
+        <!-- RESULTADOS DOS TESTES -->
+        <h2>7. Validação por Testes Automatizados</h2>
+        <div class="callout callout-success">
+            <strong>Bateria de Testes Aprovada (100% Sucesso):</strong>
+            <ul style="margin: 0.5rem 0 0 1rem;">
+                <li><code>MultiTenancyIsolationTests</code>: Validou que produtos de empresas diferentes nunca se misturam.</li>
+                <li><code>ExcelImportTests</code>: Validou a importação real da planilha <code>29_07_2026 planilha atualizada.xlsx</code> com mais de 160 produtos e fornecedores.</li>
+                <li><code>CqrsInventoryTests</code>: Validou o fluxo transacional de entrada, saída e dedução prioritária FEFO.</li>
+            </ul>
+        </div>
+
+    </div>
+
+    <div class="footer">
+        <div>
+            <strong>Gestoque Pro</strong> &bull; Sistema de Gestão de Estoque Multi-Empresa &bull; 2026
+        </div>
+        <div>
+            <a href="/" class="btn">Acessar Sistema Blazor &rarr;</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

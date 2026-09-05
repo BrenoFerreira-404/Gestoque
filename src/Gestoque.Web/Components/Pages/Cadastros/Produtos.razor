@@ -1,0 +1,210 @@
+@page "/produtos"
+@inject IMediator Mediator
+@inject TenantSessionState TenantSession
+@inject NavigationManager Navigation
+@inject NotificationService NotificationService
+
+<PageTitle>Produtos - Gestoque Pro</PageTitle>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+        <h2 style="font-weight: 700; color: #1e293b; margin: 0;">Catálogo de Alimentos & Produtos</h2>
+        <p style="color: #64748b; margin: 0; font-size: 0.95rem;">
+            Empresa: <strong style="color: #0284c7;">@TenantSession.SelectedTenantName</strong> | Gestão e especificação técnica dos itens
+        </p>
+    </div>
+
+    <RadzenButton Text="Novo Produto" Icon="add_circle" ButtonStyle="ButtonStyle.Primary" Click="@(() => showModal = true)" />
+</div>
+
+@if (loading)
+{
+    <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Style="margin-bottom: 1.5rem;" />
+}
+else
+{
+    <RadzenCard Style="background: white; border-radius: 8px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <RadzenDataGrid Data="@products" TItem="PosicaoEstoqueDto" AllowPaging="true" PageSize="15" AllowSorting="true"
+                        AllowFiltering="true" FilterMode="FilterMode.Simple" EmptyText="Nenhum produto cadastrado.">
+            <Columns>
+                <RadzenDataGridColumn Property="ProductName" Title="Nome do Alimento / Produto" Width="300px">
+                    <Template Context="p">
+                        <strong style="color: #0f172a;">@p.ProductName</strong>
+                        @if (!string.IsNullOrEmpty(p.Notes))
+                        {
+                            <span style="display: block; font-size: 0.75rem; color: #64748b;">@p.Notes</span>
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="Brand" Title="Marca" Width="130px">
+                    <Template Context="p">
+                        <span>@(string.IsNullOrEmpty(p.Brand) ? "-" : p.Brand)</span>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="Unit" Title="Unidade" Width="90px">
+                    <Template Context="p">
+                        <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@p.Unit.ToString()" />
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="MinimumStock" Title="Estoque Mínimo" Width="120px">
+                    <Template Context="p">
+                        <span style="font-weight: 600; color: #475569;">@p.MinimumStock.ToString("N0")</span>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="IsUniqueItem" Title="Item Único" Width="100px">
+                    <Template Context="p">
+                        @if (p.IsUniqueItem)
+                        {
+                            <RadzenBadge BadgeStyle="BadgeStyle.Warning" Text="SIM" IsPill="true" />
+                        }
+                        else
+                        {
+                            <span style="color: #94a3b8; font-size: 0.85rem;">Não</span>
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="CurrentStock" Title="Saldo Atual" Width="110px">
+                    <Template Context="p">
+                        <span style="font-weight: 700; color: @(p.CurrentStock > 0 ? "#16a34a" : "#dc2626");">
+                            @p.CurrentStock.ToString("N0")
+                        </span>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Title="Ações" Width="140px" Sortable="false">
+                    <Template Context="p">
+                        <RadzenButton Text="Entrada" Icon="input" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.ExtraSmall"
+                                      Click="@(() => Navigation.NavigateTo($"entradas?productId={p.ProductId}"))" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenCard>
+}
+
+<!-- MODAL NOVO PRODUTO -->
+@if (showModal)
+{
+    <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <RadzenCard Style="background: white; border-radius: 12px; width: 520px; max-width: 95vw; padding: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <h4 style="margin: 0 0 1.25rem 0; font-weight: 700; color: #0f172a;">Cadastrar Novo Produto</h4>
+
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Nome / Descrição Técnica *</label>
+                    <RadzenTextBox @bind-Value="@newProductName" Placeholder="Ex: ACHOCOLATADO em pó, solúvel 400g..." Style="width: 100%;" />
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Unidade de Medida *</label>
+                        <RadzenDropDown TValue="UnitOfMeasure" Data="@unidades"
+                                        @bind-Value="@newUnit" Style="width: 100%;" />
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Marca Padrão</label>
+                        <RadzenTextBox @bind-Value="@newBrand" Placeholder="Ex: Apti, Nestlé..." Style="width: 100%;" />
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Estoque Mínimo</label>
+                        <RadzenNumeric @bind-Value="@newMinStock" TValue="decimal" Style="width: 100%;" />
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem;">
+                        <RadzenCheckBox @bind-Value="@newIsUnique" TValue="bool" />
+                        <RadzenLabel Text="Item Único (Atenção especial)" Style="font-size: 0.85rem;" />
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Observações / Embalagem</label>
+                    <RadzenTextArea @bind-Value="@newNotes" Rows="2" Placeholder="Ex: Pacote com 12 unidades..." Style="width: 100%;" />
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
+                    <RadzenButton Text="Cancelar" ButtonStyle="ButtonStyle.Light" Click="@(() => showModal = false)" />
+                    <RadzenButton Text="Salvar Produto" ButtonStyle="ButtonStyle.Primary" Click="@SalvarProdutoAsync" />
+                </div>
+            </div>
+        </RadzenCard>
+    </div>
+}
+
+@code {
+    private bool loading = true;
+    private List<PosicaoEstoqueDto> products = new();
+    private bool showModal = false;
+    private IEnumerable<UnitOfMeasure> unidades = Enum.GetValues<UnitOfMeasure>();
+
+    private string newProductName = string.Empty;
+    private UnitOfMeasure newUnit = UnitOfMeasure.UND;
+    private string? newBrand;
+    private decimal newMinStock = 0;
+    private bool newIsUnique = false;
+    private string? newNotes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProductsAsync();
+    }
+
+    private async Task LoadProductsAsync()
+    {
+        loading = true;
+        try
+        {
+            products = await Mediator.Send(new GetPosicaoEstoqueQuery());
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task SalvarProdutoAsync()
+    {
+        if (string.IsNullOrWhiteSpace(newProductName))
+        {
+            NotificationService.Notify(NotificationSeverity.Warning, "Atenção", "Informe o nome do produto.");
+            return;
+        }
+
+        try
+        {
+            await Mediator.Send(new CreateProductCommand(
+                Name: newProductName,
+                Description: null,
+                CategoryId: null,
+                Unit: newUnit,
+                UnitDescription: null,
+                Brand: newBrand,
+                MinimumStock: newMinStock,
+                MaximumStock: 0,
+                IsUniqueItem: newIsUnique,
+                Notes: newNotes
+            ));
+
+            NotificationService.Notify(NotificationSeverity.Success, "Sucesso", "Produto cadastrado com sucesso!");
+
+            newProductName = string.Empty;
+            newBrand = null;
+            newMinStock = 0;
+            newIsUnique = false;
+            newNotes = null;
+            showModal = false;
+
+            await LoadProductsAsync();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Erro ao salvar", ex.Message);
+        }
+    }
+}

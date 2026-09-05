@@ -1,0 +1,15 @@
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Application\bin\Debug\net8.0\Gestoque.Application.deps.json
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Application\bin\Debug\net8.0\Gestoque.Application.dll
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Application\bin\Debug\net8.0\Gestoque.Application.pdb
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Application\bin\Debug\net8.0\Gestoque.Domain.dll
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Application\bin\Debug\net8.0\Gestoque.Domain.pdb
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Application\obj\Debug\net8.0\Gestoque.Application.csproj.AssemblyReference.cache
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Application\obj\Debug\net8.0\Gestoque.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Application\obj\Debug\net8.0\Gestoque.Application.AssemblyInfoInputs.cache
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Application\obj\Debug\net8.0\Gestoque.Application.AssemblyInfo.cs
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Application\obj\Debug\net8.0\Gestoque.Application.csproj.CoreCompileInputs.cache
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Application\obj\Debug\net8.0\Gestoque.30B71942.Up2Date
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Application\obj\Debug\net8.0\Gestoque.Application.dll
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Application\obj\Debug\net8.0\refint\Gestoque.Application.dll
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Application\obj\Debug\net8.0\Gestoque.Application.pdb
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Application\obj\Debug\net8.0\ref\Gestoque.Application.dll

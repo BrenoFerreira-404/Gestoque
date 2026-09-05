@@ -1,0 +1,198 @@
+@page "/doacoes"
+@inject IMediator Mediator
+@inject TenantSessionState TenantSession
+@inject NavigationManager Navigation
+@inject NotificationService NotificationService
+
+<PageTitle>Doações Recebidas - Gestoque Pro</PageTitle>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+        <h2 style="font-weight: 700; color: #1e293b; margin: 0;">Doações Recebidas</h2>
+        <p style="color: #64748b; margin: 0; font-size: 0.95rem;">
+            Empresa: <strong style="color: #0284c7;">@TenantSession.SelectedTenantName</strong> | Registro e controle de alimentos recebidos por doação
+        </p>
+    </div>
+
+    <RadzenButton Text="Ver Estoque" Icon="table_chart" ButtonStyle="ButtonStyle.Light" Click="@(() => Navigation.NavigateTo("estoque"))" />
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 1.5rem; align-items: start;">
+    <!-- FORMULÁRIO DE DOAÇÃO -->
+    <RadzenCard Style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <h4 style="font-weight: 700; color: #1e293b; margin: 0 0 1.25rem 0;">Registrar Doação</h4>
+
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Nome do Doador *</label>
+                    <RadzenTextBox @bind-Value="@donorName" Placeholder="Empresa ou Pessoa Física..." Style="width: 100%;" />
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Contato / Telefone</label>
+                    <RadzenTextBox @bind-Value="@donorContact" Placeholder="Telefone ou e-mail..." Style="width: 100%;" />
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Data da Doação</label>
+                    <RadzenDatePicker @bind-Value="@donationDate" DateFormat="dd/MM/yyyy" Style="width: 100%;" />
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Nº Termo / Recibo</label>
+                    <RadzenTextBox @bind-Value="@receiptNumber" Placeholder="Ex: DOA-2026-001" Style="width: 100%;" />
+                </div>
+            </div>
+
+            <hr style="border-top: 1px solid #e2e8f0; margin: 0.5rem 0;" />
+
+            <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Alimento / Produto Doador *</label>
+                <RadzenDropDown TValue="Guid" Data="@products" TextProperty="ProductName" ValueProperty="ProductId"
+                                @bind-Value="@selectedProductId" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
+                                Placeholder="Selecione o produto doado..." Style="width: 100%;" />
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Quantidade Doada *</label>
+                    <RadzenNumeric @bind-Value="@quantity" TValue="decimal" Min="0.01m" Style="width: 100%;" />
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Data de Validade</label>
+                    <RadzenDatePicker @bind-Value="@expiryDate" DateFormat="dd/MM/yyyy" Style="width: 100%;" />
+                </div>
+            </div>
+
+            <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Observações / Destinação</label>
+                <RadzenTextArea @bind-Value="@notes" Rows="2" Placeholder="Ex: Doação de campanha comunitária..." Style="width: 100%;" />
+            </div>
+
+            <RadzenButton Text="Registrar Doação no Estoque" Icon="volunteer_activism" ButtonStyle="ButtonStyle.Success"
+                          Click="@SalvarDoacaoAsync" Style="margin-top: 0.5rem; height: 44px; font-weight: 600;" />
+        </div>
+    </RadzenCard>
+
+    <!-- HISTÓRICO DE DOAÇÕES -->
+    <RadzenCard Style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <h4 style="font-weight: 700; color: #1e293b; margin: 0 0 1.25rem 0;">Doações Recentes no Estoque</h4>
+
+        <RadzenDataGrid Data="@donationMovements" TItem="StockMovementDto" AllowPaging="true" PageSize="8" EmptyText="Nenhuma doação registrada nesta empresa.">
+            <Columns>
+                <RadzenDataGridColumn Property="MovementDate" Title="Data" Width="95px">
+                    <Template Context="mov">
+                        <span>@mov.MovementDate.ToString("dd/MM/yyyy")</span>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="ProductName" Title="Produto" Width="180px">
+                    <Template Context="mov">
+                        <strong>@mov.ProductName</strong>
+                        <span style="display: block; font-size: 0.75rem; color: #64748b;">@mov.Notes</span>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="Quantity" Title="Qtd" Width="90px">
+                    <Template Context="mov">
+                        <span style="color: #16a34a; font-weight: 700;">+@mov.Quantity.ToString("N0")</span>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="ExpiryDate" Title="Validade" Width="105px">
+                    <Template Context="mov">
+                        <span>@(mov.ExpiryDate.HasValue ? mov.ExpiryDate.Value.ToString("dd/MM/yyyy") : "-")</span>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenCard>
+</div>
+
+@code {
+    private List<PosicaoEstoqueDto> products = new();
+    private List<StockMovementDto> donationMovements = new();
+
+    private string donorName = string.Empty;
+    private string? donorContact;
+    private DateTime donationDate = DateTime.Today;
+    private string? receiptNumber;
+    private Guid selectedProductId;
+    private decimal quantity = 1;
+    private DateTime? expiryDate;
+    private string? notes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        products = await Mediator.Send(new GetPosicaoEstoqueQuery());
+        var allMovements = await Mediator.Send(new GetMovimentacoesQuery(Type: MovementType.Entrada));
+        donationMovements = allMovements
+            .Where(m => m.MovementReason == MovementReason.DoacaoRecebida)
+            .ToList();
+    }
+
+    private async Task SalvarDoacaoAsync()
+    {
+        if (string.IsNullOrWhiteSpace(donorName))
+        {
+            NotificationService.Notify(NotificationSeverity.Warning, "Atenção", "Informe o nome do doador.");
+            return;
+        }
+
+        if (selectedProductId == Guid.Empty)
+        {
+            NotificationService.Notify(NotificationSeverity.Warning, "Atenção", "Selecione o produto.");
+            return;
+        }
+
+        if (quantity <= 0)
+        {
+            NotificationService.Notify(NotificationSeverity.Warning, "Atenção", "Informe uma quantidade válida.");
+            return;
+        }
+
+        try
+        {
+            var items = new List<DonationItemInput>
+            {
+                new(
+                    ProductId: selectedProductId,
+                    Quantity: quantity,
+                    ExpiryDate: expiryDate,
+                    Brand: null,
+                    Notes: notes
+                )
+            };
+
+            await Mediator.Send(new RegistrarDoacaoCommand(
+                DonorName: donorName,
+                DonorContact: donorContact,
+                DonationDate: donationDate,
+                ReceiptNumber: receiptNumber,
+                Notes: notes,
+                Items: items
+            ));
+
+            NotificationService.Notify(NotificationSeverity.Success, "Sucesso", "Doação registrada no estoque com sucesso!");
+
+            donorName = string.Empty;
+            donorContact = null;
+            receiptNumber = null;
+            quantity = 1;
+            notes = null;
+
+            await LoadDataAsync();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Erro ao salvar", ex.Message);
+        }
+    }
+}

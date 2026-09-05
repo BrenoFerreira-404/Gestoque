@@ -1,0 +1,217 @@
+@page "/entradas"
+@inject IMediator Mediator
+@inject TenantSessionState TenantSession
+@inject NavigationManager Navigation
+@inject NotificationService NotificationService
+
+<PageTitle>Entrada de Mercadoria - Gestoque Pro</PageTitle>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+        <h2 style="font-weight: 700; color: #1e293b; margin: 0;">Entrada de Mercadoria</h2>
+        <p style="color: #64748b; margin: 0; font-size: 0.95rem;">
+            Empresa: <strong style="color: #0284c7;">@TenantSession.SelectedTenantName</strong> | Registro de entregas recebidas por fornecedores
+        </p>
+    </div>
+
+    <RadzenButton Text="Ver Estoque" Icon="table_chart" ButtonStyle="ButtonStyle.Light" Click="@(() => Navigation.NavigateTo("estoque"))" />
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 1.5rem; align-items: start;">
+    <!-- FORMULÁRIO DE ENTRADA -->
+    <RadzenCard Style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <h4 style="font-weight: 700; color: #1e293b; margin: 0 0 1.25rem 0;">Nova Entrada de Estoque</h4>
+
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <!-- PRODUTO -->
+            <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Alimento / Produto *</label>
+                <RadzenDropDown TValue="Guid" Data="@products" TextProperty="ProductName" ValueProperty="ProductId"
+                                @bind-Value="@selectedProductId" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
+                                Placeholder="Selecione o produto..." Style="width: 100%;" Change="@OnProductChanged" />
+            </div>
+
+            <!-- FORNECEDOR -->
+            <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Fornecedor *</label>
+                <RadzenDropDown TValue="Guid?" Data="@suppliers" TextProperty="Name" ValueProperty="Id"
+                                @bind-Value="@selectedSupplierId" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                FilterOperator="StringFilterOperator.Contains" AllowFiltering="true"
+                                Placeholder="Selecione ou deixe em branco..." Style="width: 100%;" />
+            </div>
+
+            <!-- QUANTIDADE E UNIDADE -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Quantidade Recebida *</label>
+                    <RadzenNumeric @bind-Value="@quantity" TValue="decimal" Min="0.01m" Style="width: 100%;" />
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Marca do Produto</label>
+                    <RadzenTextBox @bind-Value="@brand" Placeholder="Ex: Nestlé, BãoPirão..." Style="width: 100%;" />
+                </div>
+            </div>
+
+            <!-- LOTE E VALIDADE -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Lote (Opcional)</label>
+                    <RadzenTextBox @bind-Value="@batchNumber" Placeholder="Lote do fabricante..." Style="width: 100%;" />
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Data de Validade</label>
+                    <RadzenDatePicker @bind-Value="@expiryDate" DateFormat="dd/MM/yyyy" Placeholder="dd/mm/aaaa" Style="width: 100%;" />
+                </div>
+            </div>
+
+            <!-- DATA RECEBIMENTO E DOCUMENTO -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Data de Recebimento</label>
+                    <RadzenDatePicker @bind-Value="@movementDate" DateFormat="dd/MM/yyyy" Style="width: 100%;" />
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Nota Fiscal / Recibo</label>
+                    <RadzenTextBox @bind-Value="@documentNumber" Placeholder="Ex: NF-12345" Style="width: 100%;" />
+                </div>
+            </div>
+
+            <!-- OBSERVAÇÕES -->
+            <div>
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Observações / Embalagem</label>
+                <RadzenTextArea @bind-Value="@notes" Rows="2" Placeholder="Ex: 10 caixas com 12 garrafas..." Style="width: 100%;" />
+            </div>
+
+            <RadzenButton Text="Confirmar Entrada no Estoque" Icon="check_circle" ButtonStyle="ButtonStyle.Success"
+                          Click="@SalvarEntradaAsync" Style="margin-top: 0.5rem; height: 44px; font-weight: 600;" />
+        </div>
+    </RadzenCard>
+
+    <!-- HISTÓRICO RECENTE DE ENTRADAS -->
+    <RadzenCard Style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <h4 style="font-weight: 700; color: #1e293b; margin: 0 0 1.25rem 0;">Últimas Entradas Registradas</h4>
+
+        <RadzenDataGrid Data="@recentMovements" TItem="StockMovementDto" AllowPaging="true" PageSize="8" EmptyText="Nenhuma entrada recente.">
+            <Columns>
+                <RadzenDataGridColumn Property="MovementDate" Title="Data" Width="100px">
+                    <Template Context="mov">
+                        <span>@mov.MovementDate.ToString("dd/MM/yyyy")</span>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="ProductName" Title="Produto" Width="180px">
+                    <Template Context="mov">
+                        <strong>@mov.ProductName</strong>
+                        @if (!string.IsNullOrEmpty(mov.BatchNumber))
+                        {
+                            <span style="display: block; font-size: 0.75rem; color: #64748b;">@mov.BatchNumber</span>
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="Quantity" Title="Qtd" Width="90px">
+                    <Template Context="mov">
+                        <span style="color: #16a34a; font-weight: 700;">+@mov.Quantity.ToString("N0")</span>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Property="ExpiryDate" Title="Validade" Width="110px">
+                    <Template Context="mov">
+                        <span>@(mov.ExpiryDate.HasValue ? mov.ExpiryDate.Value.ToString("dd/MM/yyyy") : "-")</span>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenCard>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public Guid? ProductId { get; set; }
+
+    private List<PosicaoEstoqueDto> products = new();
+    private List<SupplierDto> suppliers = new();
+    private List<StockMovementDto> recentMovements = new();
+
+    private Guid selectedProductId;
+    private Guid? selectedSupplierId;
+    private decimal quantity = 1;
+    private string? brand;
+    private string? batchNumber;
+    private DateTime? expiryDate;
+    private DateTime movementDate = DateTime.Today;
+    private string? documentNumber;
+    private string? notes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+
+        if (ProductId.HasValue && products.Any(p => p.ProductId == ProductId.Value))
+        {
+            selectedProductId = ProductId.Value;
+            OnProductChanged();
+        }
+    }
+
+    private async Task LoadDataAsync()
+    {
+        products = await Mediator.Send(new GetPosicaoEstoqueQuery());
+        suppliers = await Mediator.Send(new GetSuppliersQuery());
+        recentMovements = await Mediator.Send(new GetMovimentacoesQuery(Type: MovementType.Entrada));
+    }
+
+    private void OnProductChanged()
+    {
+        var prod = products.FirstOrDefault(p => p.ProductId == selectedProductId);
+        if (prod != null && !string.IsNullOrEmpty(prod.Brand))
+        {
+            brand = prod.Brand;
+        }
+    }
+
+    private async Task SalvarEntradaAsync()
+    {
+        if (selectedProductId == Guid.Empty)
+        {
+            NotificationService.Notify(NotificationSeverity.Warning, "Atenção", "Selecione o produto.");
+            return;
+        }
+
+        if (quantity <= 0)
+        {
+            NotificationService.Notify(NotificationSeverity.Warning, "Atenção", "Informe uma quantidade válida.");
+            return;
+        }
+
+        try
+        {
+            await Mediator.Send(new RegistrarEntradaCommand(
+                ProductId: selectedProductId,
+                SupplierId: selectedSupplierId,
+                BatchNumber: batchNumber,
+                ExpiryDate: expiryDate,
+                Quantity: quantity,
+                MovementDate: movementDate,
+                Brand: brand,
+                DocumentNumber: documentNumber,
+                Notes: notes
+            ));
+
+            NotificationService.Notify(NotificationSeverity.Success, "Sucesso", "Entrada de mercadoria registrada com sucesso!");
+
+            // Limpa formulário
+            quantity = 1;
+            batchNumber = null;
+            documentNumber = null;
+            notes = null;
+
+            await LoadDataAsync();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Erro ao registrar entrada", ex.Message);
+        }
+    }
+}

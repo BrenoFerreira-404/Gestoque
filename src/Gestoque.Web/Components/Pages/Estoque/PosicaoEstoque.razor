@@ -1,0 +1,281 @@
+@page "/estoque"
+@inject IMediator Mediator
+@inject TenantSessionState TenantSession
+@inject NavigationManager Navigation
+@inject NotificationService NotificationService
+@inject DialogService DialogService
+
+<PageTitle>Posição do Estoque - Gestoque Pro</PageTitle>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+        <h2 style="font-weight: 700; color: #1e293b; margin: 0;">Posição do Estoque</h2>
+        <p style="color: #64748b; margin: 0; font-size: 0.95rem;">
+            Empresa: <strong style="color: #0284c7;">@TenantSession.SelectedTenantName</strong> | Visão consolidada de alimentos e insumos
+        </p>
+    </div>
+
+    <div style="display: flex; gap: 0.75rem;">
+        <RadzenButton Text="Cadastrar Produto" Icon="add" ButtonStyle="ButtonStyle.Primary" Click="@(() => Navigation.NavigateTo("produtos"))" />
+        <RadzenButton Text="Lançar Entrada" Icon="input" ButtonStyle="ButtonStyle.Success" Click="@(() => Navigation.NavigateTo("entradas"))" />
+        <RadzenButton Text="Lançar Saída" Icon="output" ButtonStyle="ButtonStyle.Danger" Click="@(() => Navigation.NavigateTo("saidas"))" />
+    </div>
+</div>
+
+<!-- LEGENDA VISUAL EXTRAÍDA DA PLANILHA -->
+<div style="background: white; padding: 0.75rem 1.25rem; border-radius: 8px; margin-bottom: 1rem; display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <span style="font-weight: 600; font-size: 0.85rem; color: #475569;">LEGENDA OFICIAL:</span>
+    <div style="display: flex; align-items: center; gap: 0.4rem;">
+        <span style="display: inline-block; width: 14px; height: 14px; border-radius: 3px; background-color: #22c55e;"></span>
+        <span style="font-size: 0.8rem; color: #334155;">Validade Confortável (> 60 dias)</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 0.4rem;">
+        <span style="display: inline-block; width: 14px; height: 14px; border-radius: 3px; background-color: #f59e0b;"></span>
+        <span style="font-size: 0.8rem; color: #334155;">Próximo ao Vencimento (&lt;= 30 dias)</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 0.4rem;">
+        <span style="display: inline-block; width: 14px; height: 14px; border-radius: 3px; background-color: #ef4444;"></span>
+        <span style="font-size: 0.8rem; color: #334155;">Vencido / Abaixo do Mínimo</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 0.4rem;">
+        <RadzenBadge BadgeStyle="BadgeStyle.Warning" Text="ITEM ÚNICO" IsPill="true" Style="font-size: 0.7rem;" />
+        <span style="font-size: 0.8rem; color: #334155;">Item único / Atenção</span>
+    </div>
+</div>
+
+<!-- BARRA DE FILTROS -->
+<RadzenCard Style="background: white; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 250px;">
+            <RadzenTextBox Placeholder="Pesquisar por nome do alimento ou marca..." @bind-Value="@searchTerm"
+                           @oninput="@OnSearchInput" Style="width: 100%;" />
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <RadzenCheckBox @bind-Value="@onlyBelowMinimum" TValue="bool" Change="@(_ => LoadStockAsync())" />
+            <RadzenLabel Text="Apenas abaixo do mínimo" Style="font-size: 0.9rem; color: #334155;" />
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <RadzenCheckBox @bind-Value="@onlyExpiringSoon" TValue="bool" Change="@(_ => LoadStockAsync())" />
+            <RadzenLabel Text="Apenas perto de vencer" Style="font-size: 0.9rem; color: #334155;" />
+        </div>
+
+        <RadzenButton Text="Filtrar" Icon="search" ButtonStyle="ButtonStyle.Light" Click="@LoadStockAsync" />
+        <RadzenButton Text="Limpar" Icon="clear" ButtonStyle="ButtonStyle.Secondary" Click="@ClearFilters" />
+    </div>
+</RadzenCard>
+
+@if (loading)
+{
+    <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Style="margin-bottom: 1.5rem;" />
+}
+else
+{
+    <RadzenCard Style="background: white; border-radius: 8px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <RadzenDataGrid Data="@items" TItem="PosicaoEstoqueDto" AllowPaging="true" PageSize="15" AllowSorting="true"
+                        AllowFiltering="true" FilterMode="FilterMode.Simple" EmptyText="Nenhum produto cadastrado nesta empresa."
+                        Responsive="true">
+            <Columns>
+                <!-- Alimento / Produto -->
+                <RadzenDataGridColumn Property="ProductName" Title="Alimento / Descrição" Width="300px">
+                    <Template Context="item">
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-weight: 700; color: #0f172a;">@item.ProductName</span>
+                            @if (!string.IsNullOrEmpty(item.Notes))
+                            {
+                                <span style="font-size: 0.75rem; color: #64748b;">@item.Notes</span>
+                            }
+                            @if (item.IsUniqueItem)
+                            {
+                                <span style="margin-top: 3px;">
+                                    <RadzenBadge BadgeStyle="BadgeStyle.Warning" Text="ITEM ÚNICO" IsPill="true" Style="font-size: 0.65rem;" />
+                                </span>
+                            }
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <!-- Marca -->
+                <RadzenDataGridColumn Property="Brand" Title="Marca" Width="130px">
+                    <Template Context="item">
+                        <span>@(string.IsNullOrEmpty(item.Brand) ? "-" : item.Brand)</span>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <!-- Unidade -->
+                <RadzenDataGridColumn Property="Unit" Title="Unidade" Width="90px">
+                    <Template Context="item">
+                        <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@item.Unit.ToString()" />
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <!-- Saldo Atual -->
+                <RadzenDataGridColumn Property="CurrentStock" Title="Saldo Atual" Width="120px">
+                    <Template Context="item">
+                        <span style="font-weight: 700; font-size: 1.1rem; color: @(item.IsBelowMinimum ? "#dc2626" : "#15803d");">
+                            @item.CurrentStock.ToString("N0")
+                        </span>
+                        @if (item.IsBelowMinimum)
+                        {
+                            <RadzenIcon Icon="warning" Style="color: #dc2626; font-size: 1rem; vertical-align: middle; margin-left: 4px;" Title="Abaixo do estoque mínimo!" />
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <!-- Estoque Mínimo -->
+                <RadzenDataGridColumn Property="MinimumStock" Title="Estoque Mínimo" Width="120px">
+                    <Template Context="item">
+                        <span style="color: #64748b;">@item.MinimumStock.ToString("N0")</span>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <!-- Próxima Validade -->
+                <RadzenDataGridColumn Property="NextExpiryDate" Title="Próxima Validade" Width="170px">
+                    <Template Context="item">
+                        @if (item.NextExpiryDate.HasValue)
+                        {
+                            @if (item.ExpiryStatus == ExpiryStatus.Vencido)
+                            {
+                                <RadzenBadge BadgeStyle="BadgeStyle.Danger" Text="@($"{item.NextExpiryDate:dd/MM/yyyy}")" Title="Produto vencido!" />
+                            }
+                            else if (item.ExpiryStatus == ExpiryStatus.Critico || item.ExpiryStatus == ExpiryStatus.ProximoVencimento)
+                            {
+                                <RadzenBadge BadgeStyle="BadgeStyle.Warning" Text="@($"{item.NextExpiryDate:dd/MM/yyyy}")" Title="Próximo ao vencimento!" />
+                            }
+                            else
+                            {
+                                <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="@($"{item.NextExpiryDate:dd/MM/yyyy}")" Title="Validade confortável" />
+                            }
+                        }
+                        else
+                        {
+                            <span style="color: #94a3b8; font-size: 0.85rem;">Não informada</span>
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <!-- Ações -->
+                <RadzenDataGridColumn Title="Ações" Width="180px" Sortable="false" Filterable="false">
+                    <Template Context="item">
+                        <div style="display: flex; gap: 0.4rem;">
+                            <RadzenButton Icon="output" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Title="Lançar Saída Rápida"
+                                          Click="@(() => Navigation.NavigateTo($"saidas?productId={item.ProductId}"))" />
+                            <RadzenButton Icon="input" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Title="Lançar Entrada"
+                                          Click="@(() => Navigation.NavigateTo($"entradas?productId={item.ProductId}"))" />
+                            <RadzenButton Icon="tune" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" Title="Ajustar Estoque (Inventário)"
+                                          Click="@(() => OpenAjusteModal(item))" />
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenCard>
+}
+
+<!-- MODAL DE AJUSTE DE ESTOQUE (INVENTÁRIO FÍSICO) -->
+@if (selectedItemParaAjuste != null)
+{
+    <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <RadzenCard Style="background: white; border-radius: 12px; width: 450px; padding: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <h4 style="margin: 0 0 1rem 0; font-weight: 700; color: #0f172a;">Ajuste de Inventário Físico</h4>
+            <p style="margin: 0 0 1rem 0; color: #475569; font-size: 0.9rem;">
+                Produto: <strong>@selectedItemParaAjuste.ProductName</strong><br />
+                Saldo Atual no Sistema: <strong>@selectedItemParaAjuste.CurrentStock @selectedItemParaAjuste.Unit</strong>
+            </p>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem;">Nova Contagem Física:</label>
+                <RadzenNumeric @bind-Value="@novoSaldoContado" TValue="decimal" Style="width: 100%;" />
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem;">Justificativa do Ajuste:</label>
+                <RadzenTextArea @bind-Value="@justificativaAjuste" Rows="3" Placeholder="Ex: Balanço físico de fim de mês..." Style="width: 100%;" />
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                <RadzenButton Text="Cancelar" ButtonStyle="ButtonStyle.Light" Click="@(() => selectedItemParaAjuste = null)" />
+                <RadzenButton Text="Confirmar Ajuste" ButtonStyle="ButtonStyle.Primary" Click="@ConfirmarAjusteAsync" />
+            </div>
+        </RadzenCard>
+    </div>
+}
+
+@code {
+    private bool loading = true;
+    private List<PosicaoEstoqueDto> items = new();
+    private string searchTerm = string.Empty;
+    private bool onlyBelowMinimum = false;
+    private bool onlyExpiringSoon = false;
+
+    // Modal de ajuste
+    private PosicaoEstoqueDto? selectedItemParaAjuste;
+    private decimal novoSaldoContado;
+    private string justificativaAjuste = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStockAsync();
+    }
+
+    private async Task LoadStockAsync()
+    {
+        loading = true;
+        try
+        {
+            var query = new GetPosicaoEstoqueQuery(
+                SearchTerm: searchTerm,
+                OnlyBelowMinimum: onlyBelowMinimum ? true : null,
+                FilterExpiry: onlyExpiringSoon ? ExpiryStatus.ProximoVencimento : null
+            );
+            items = await Mediator.Send(query);
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void OnSearchInput(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? string.Empty;
+    }
+
+    private async Task ClearFilters()
+    {
+        searchTerm = string.Empty;
+        onlyBelowMinimum = false;
+        onlyExpiringSoon = false;
+        await LoadStockAsync();
+    }
+
+    private void OpenAjusteModal(PosicaoEstoqueDto item)
+    {
+        selectedItemParaAjuste = item;
+        novoSaldoContado = item.CurrentStock;
+        justificativaAjuste = "Contagem física do estoque";
+    }
+
+    private async Task ConfirmarAjusteAsync()
+    {
+        if (selectedItemParaAjuste == null) return;
+
+        try
+        {
+            await Mediator.Send(new AjustarEstoqueCommand(
+                ProductId: selectedItemParaAjuste.ProductId,
+                NewQuantity: novoSaldoContado,
+                ReasonNotes: justificativaAjuste
+            ));
+
+            NotificationService.Notify(NotificationSeverity.Success, "Sucesso", "Estoque ajustado com sucesso!");
+            selectedItemParaAjuste = null;
+            await LoadStockAsync();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Erro ao ajustar", ex.Message);
+        }
+    }
+}

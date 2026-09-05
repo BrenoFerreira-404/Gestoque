@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Gestoque.Application/Gestoque.Application.csproj" />
+    <Project Path="src/Gestoque.Domain/Gestoque.Domain.csproj" />
+    <Project Path="src/Gestoque.Infrastructure/Gestoque.Infrastructure.csproj" />
+    <Project Path="src/Gestoque.Api/Gestoque.Api.csproj" />
+    <Project Path="src/Gestoque.Migrator/Gestoque.Migrator.csproj" />
+    <Project Path="src/Gestoque.Web/Gestoque.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Gestoque.Tests/Gestoque.Tests.csproj" />
+  </Folder>
+</Solution>

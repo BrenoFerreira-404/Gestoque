@@ -1,0 +1,69 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-gestoque}
+      POSTGRES_USER: ${POSTGRES_USER:-gestoque}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gestoque_dev_password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - gestoque-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gestoque} -d ${POSTGRES_DB:-gestoque}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - gestoque
+
+  migration:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrator
+    environment:
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=${POSTGRES_DB:-gestoque};Username=${POSTGRES_USER:-gestoque};Password=${POSTGRES_PASSWORD:-gestoque_dev_password}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - gestoque
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=${POSTGRES_DB:-gestoque};Username=${POSTGRES_USER:-gestoque};Password=${POSTGRES_PASSWORD:-gestoque_dev_password}
+    ports:
+      - "${API_PORT:-8080}:8080"
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+    networks:
+      - gestoque
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=${POSTGRES_DB:-gestoque};Username=${POSTGRES_USER:-gestoque};Password=${POSTGRES_PASSWORD:-gestoque_dev_password}
+    ports:
+      - "${WEB_PORT:-8081}:8080"
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+    networks:
+      - gestoque
+
+volumes:
+  gestoque-postgres:
+
+networks:
+  gestoque:

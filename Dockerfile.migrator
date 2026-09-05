@@ -1,0 +1,20 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+COPY src/Gestoque.Domain/Gestoque.Domain.csproj src/Gestoque.Domain/
+COPY src/Gestoque.Application/Gestoque.Application.csproj src/Gestoque.Application/
+COPY src/Gestoque.Infrastructure/Gestoque.Infrastructure.csproj src/Gestoque.Infrastructure/
+COPY src/Gestoque.Migrator/Gestoque.Migrator.csproj src/Gestoque.Migrator/
+RUN dotnet restore src/Gestoque.Migrator/Gestoque.Migrator.csproj
+
+COPY src/ src/
+RUN dotnet publish src/Gestoque.Migrator/Gestoque.Migrator.csproj \
+    --configuration Release \
+    --output /app/publish \
+    --no-restore
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+WORKDIR /app
+COPY --from=build /app/publish .
+COPY ["29_07_2026 planilha atualizada.xlsx", "./"]
+ENTRYPOINT ["dotnet", "Gestoque.Migrator.dll"]

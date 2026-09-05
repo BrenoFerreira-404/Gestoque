@@ -1,0 +1,92 @@
+@inherits LayoutComponentBase
+@inject IMediator Mediator
+@inject TenantSessionState TenantSession
+@inject NavigationManager Navigation
+
+<RadzenLayout Style="grid-template-areas: 'rz-header rz-header' 'rz-sidebar rz-body';">
+    <RadzenHeader Style="display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; background-color: #1e293b; color: white; height: 64px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <RadzenIcon Icon="inventory_2" Style="font-size: 1.8rem; color: #38bdf8;" />
+                <span style="font-size: 1.25rem; font-weight: 700; letter-spacing: 0.5px; color: #f8fafc;">GESTOQUE</span>
+                <span style="font-size: 0.75rem; background-color: #0284c7; padding: 2px 8px; border-radius: 9999px; font-weight: 600;">MULTI-EMPRESA</span>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1.5rem;">
+            <!-- Seletor de Empresa Ativa (Multi-Tenant) -->
+            <div style="display: flex; align-items: center; gap: 0.75rem; background: rgba(255,255,255,0.08); padding: 4px 12px; border-radius: 8px;">
+                <RadzenIcon Icon="business" Style="color: #38bdf8;" />
+                <span style="font-size: 0.85rem; color: #cbd5e1; font-weight: 500;">Empresa Ativa:</span>
+                <RadzenDropDown TValue="Guid" Data="@tenants" TextProperty="NomeFantasia" ValueProperty="Id"
+                                Value="@currentTenantId" Change="@OnTenantSelectionChanged"
+                                Style="width: 250px; background-color: #0f172a; border-color: #334155; color: white;" />
+            </div>
+
+            <!-- Perfil / Admin -->
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="SUPER ADMIN" IsPill="true" />
+                <RadzenIcon Icon="account_circle" Style="font-size: 2rem; color: #94a3b8;" />
+            </div>
+        </div>
+    </RadzenHeader>
+
+    <RadzenSidebar @bind-Expanded="@sidebarExpanded" Style="background-color: #0f172a; border-right: 1px solid #1e293b; width: 260px;">
+        <NavMenu />
+    </RadzenSidebar>
+
+    <RadzenBody Style="padding: 1.5rem; background-color: #f1f5f9; min-height: calc(100vh - 64px);">
+        @Body
+    </RadzenBody>
+</RadzenLayout>
+
+<div id="blazor-error-ui">
+    Ocorreu um erro não tratado.
+    <a href="" class="reload">Recarregar</a>
+    <a class="dismiss">🗙</a>
+</div>
+
+@code {
+    private bool sidebarExpanded = true;
+    private List<TenantDto> tenants = new();
+    private Guid currentTenantId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTenantsAsync();
+    }
+
+    private async Task LoadTenantsAsync()
+    {
+        tenants = await Mediator.Send(new GetTenantsQuery());
+        if (tenants.Any())
+        {
+            if (!TenantSession.SelectedTenantId.HasValue || !tenants.Any(t => t.Id == TenantSession.SelectedTenantId.Value))
+            {
+                var first = tenants.First();
+                currentTenantId = first.Id;
+                TenantSession.SetTenant(first);
+            }
+            else
+            {
+                currentTenantId = TenantSession.SelectedTenantId.Value;
+            }
+        }
+    }
+
+    private void OnTenantSelectionChanged(object value)
+    {
+        if (value is Guid tenantId)
+        {
+            var selected = tenants.FirstOrDefault(t => t.Id == tenantId);
+            if (selected != null)
+            {
+                currentTenantId = tenantId;
+                TenantSession.SetTenant(selected);
+                // Força atualização da página atual para carregar dados da empresa selecionada
+                Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+            }
+        }
+    }
+}
