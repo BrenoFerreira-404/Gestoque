@@ -335,14 +335,10 @@ public class GetDashboardKpisQueryHandler : IRequestHandler<GetDashboardKpisQuer
         var tenantId = _currentTenant.TenantId
             ?? throw new InvalidOperationException("Nenhuma empresa ativa selecionada.");
 
-        var now = DateTime.UtcNow;
-        var startOfMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-
         var products = await _context.Products
             .AsNoTracking()
             .Include(p => p.Batches.Where(b => b.TenantId == tenantId && b.CurrentQuantity > 0))
             .Where(p => p.IsActive && p.TenantId == tenantId)
-            .Where(p => p.Batches.Any(b => b.CurrentQuantity > 0) || p.StockMovements.Any())
             .ToListAsync(cancellationToken);
 
         var totalProducts = products.Count;
@@ -368,17 +364,17 @@ public class GetDashboardKpisQueryHandler : IRequestHandler<GetDashboardKpisQuer
             }
         }
 
-        var monthMovements = await _context.StockMovements
+        var registeredMovements = await _context.StockMovements
             .AsNoTracking()
-            .Where(m => m.TenantId == tenantId && m.MovementDate >= startOfMonth)
+            .Where(m => m.TenantId == tenantId)
             .Select(m => new { m.MovementType, m.Quantity })
             .ToListAsync(cancellationToken);
 
-        var totalEntradas = monthMovements
+        var totalEntradas = registeredMovements
             .Where(m => m.MovementType == MovementType.Entrada)
             .Sum(m => m.Quantity);
 
-        var totalSaidas = monthMovements
+        var totalSaidas = registeredMovements
             .Where(m => m.MovementType == MovementType.Saida)
             .Sum(m => m.Quantity);
 

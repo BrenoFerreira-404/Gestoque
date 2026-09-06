@@ -253,6 +253,17 @@ public class ExcelImporterService
         if (!File.Exists(filePath))
             throw new FileNotFoundException("Arquivo Excel não encontrado.", filePath);
 
+        var alreadyImported = await _context.StockMovements
+            .IgnoreQueryFilters()
+            .AnyAsync(m => m.TenantId == tenantId
+                && m.MovementType == MovementType.Saida
+                && m.MovementReason == MovementReason.ConsumoCozinha
+                && m.Notes != null
+                && m.Notes.StartsWith("Saída importada da planilha"));
+
+        if (alreadyImported)
+            return 0;
+
         using var workbook = new XLWorkbook(filePath);
 
         if (!TryGetWorksheetCaseInsensitive(workbook, "ESTOQUE", out var wsEstoque))
@@ -284,7 +295,9 @@ public class ExcelImporterService
             .Where(p => p.TenantId == tenantId)
             .ToListAsync();
 
-        return products.ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
+        return products
+            .GroupBy(p => p.Name, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
     }
 
     private async Task<Dictionary<int, Product>> LoadProductsBySpreadsheetRowIdAsync(

@@ -134,6 +134,13 @@
             }
 
             importResult = await ExcelImporter.ImportFromExcelAsync(tempPath, TenantSession.SelectedTenantId.Value);
+            var importedOutflows = await ExcelImporter.ImportStockOutflowsAsync(
+                tempPath,
+                TenantSession.SelectedTenantId.Value);
+            importResult = (
+                importResult.Value.products,
+                importResult.Value.suppliers,
+                importResult.Value.movements + importedOutflows);
 
             NotificationService.Notify(NotificationSeverity.Success, "Sucesso", "Importação concluída com sucesso!");
         }

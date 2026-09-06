@@ -65,6 +65,18 @@ if (!string.IsNullOrWhiteSpace(excelFilePath))
     {
         Console.WriteLine("Importação Excel ignorada — dados da planilha já existem no banco.");
     }
+
+    var tenantsWithProducts = await context.Tenants
+        .Where(t => t.IsActive)
+        .Where(t => context.Products.IgnoreQueryFilters().Any(p => p.TenantId == t.Id))
+        .ToListAsync();
+
+    foreach (var targetTenant in tenantsWithProducts)
+    {
+        var movements = await importer.ImportStockOutflowsAsync(excelFilePath, targetTenant.Id);
+        if (movements > 0)
+            Console.WriteLine($"Saídas da planilha importadas para {targetTenant.NomeFantasia}: {movements} movimentos.");
+    }
 }
 
 Console.WriteLine("Banco de dados migrado e seed inicial concluído.");

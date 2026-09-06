@@ -85,12 +85,12 @@
                 <RadzenCard>
                     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
                         <RadzenStack Gap="0">
-                            <RadzenText TextStyle="TextStyle.Overline">Entradas no Mês</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Overline">Entradas Registradas</RadzenText>
                             <RadzenText TextStyle="TextStyle.H3" Style="margin: 0; color: var(--rz-success);">@kpis.TotalEntradasMonth.ToString("N0")</RadzenText>
                         </RadzenStack>
                         <RadzenIcon Icon="arrow_downward" Style="font-size: 2rem; color: var(--rz-success);" />
                     </RadzenStack>
-                    <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-success);">Unidades recebidas neste mês</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-success);">Unidades recebidas no sistema</RadzenText>
                 </RadzenCard>
             </RadzenColumn>
 
@@ -98,12 +98,12 @@
                 <RadzenCard>
                     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
                         <RadzenStack Gap="0">
-                            <RadzenText TextStyle="TextStyle.Overline">Saídas no Mês</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Overline">Saídas Registradas</RadzenText>
                             <RadzenText TextStyle="TextStyle.H3" Style="margin: 0; color: var(--rz-secondary);">@kpis.TotalSaidasMonth.ToString("N0")</RadzenText>
                         </RadzenStack>
                         <RadzenIcon Icon="arrow_upward" Style="font-size: 2rem; color: var(--rz-secondary);" />
                     </RadzenStack>
-                    <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary">Unidades consumidas/baixadas</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary">Unidades consumidas/baixadas no sistema</RadzenText>
                 </RadzenCard>
             </RadzenColumn>
         </RadzenRow>
