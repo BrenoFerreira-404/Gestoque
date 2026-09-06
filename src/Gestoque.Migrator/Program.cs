@@ -1,6 +1,7 @@
 using Gestoque.Infrastructure;
 using Gestoque.Infrastructure.Data;
 using Gestoque.Infrastructure.Services;
+using Gestoque.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -40,18 +41,29 @@ if (!string.IsNullOrWhiteSpace(excelFilePath))
         .IgnoreQueryFilters()
         .AnyAsync(p => p.TenantId == tenant.Id);
 
+    var importer = scope.ServiceProvider.GetRequiredService<ExcelImporterService>();
     if (!hasProducts)
     {
-        var importer = scope.ServiceProvider.GetRequiredService<ExcelImporterService>();
         var result = await importer.ImportFromExcelAsync(excelFilePath, tenant.Id);
 
         Console.WriteLine(
             $"Importação Excel concluída: {result.products} produtos, " +
             $"{result.suppliers} fornecedores e {result.movements} movimentos.");
     }
+    else if (!await context.StockMovements
+        .IgnoreQueryFilters()
+        .AnyAsync(m => m.TenantId == tenant.Id
+            && m.MovementType == MovementType.Saida
+            && m.MovementReason == MovementReason.ConsumoCozinha
+            && m.Notes != null
+            && m.Notes.StartsWith("Saída importada da planilha")))
+    {
+        var movements = await importer.ImportStockOutflowsAsync(excelFilePath, tenant.Id);
+        Console.WriteLine($"Saídas da planilha importadas: {movements} movimentos.");
+    }
     else
     {
-        Console.WriteLine("Importação Excel ignorada — produtos já existem no banco.");
+        Console.WriteLine("Importação Excel ignorada — dados da planilha já existem no banco.");
     }
 }
 

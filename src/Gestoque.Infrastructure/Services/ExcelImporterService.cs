@@ -248,6 +248,35 @@ public class ExcelImporterService
         return (productsCount, suppliersCount, movementsCount);
     }
 
+    public async Task<int> ImportStockOutflowsAsync(string filePath, Guid tenantId)
+    {
+        if (!File.Exists(filePath))
+            throw new FileNotFoundException("Arquivo Excel não encontrado.", filePath);
+
+        using var workbook = new XLWorkbook(filePath);
+
+        if (!TryGetWorksheetCaseInsensitive(workbook, "ESTOQUE", out var wsEstoque))
+            throw new InvalidOperationException("Aba 'ESTOQUE' não encontrada na planilha.");
+
+        if (!TryGetWorksheetCaseInsensitive(workbook, "SAÍDA", out var wsSaida)
+            && !TryGetWorksheetCaseInsensitive(workbook, "SAIDA", out wsSaida))
+        {
+            throw new InvalidOperationException("Aba 'SAÍDA' não encontrada na planilha.");
+        }
+
+        var productsByRowId = await LoadProductsBySpreadsheetRowIdAsync(wsEstoque, tenantId);
+        var movementsCount = ImportDailyMatrixMovements(
+            wsSaida,
+            productsByRowId,
+            tenantId,
+            MovementType.Saida,
+            MovementReason.ConsumoCozinha,
+            "Saída importada da planilha");
+
+        await _context.SaveChangesAsync();
+        return movementsCount;
+    }
+
     private async Task<Dictionary<string, Product>> LoadProductsCacheAsync(Guid tenantId)
     {
         var products = await _context.Products
@@ -256,6 +285,36 @@ public class ExcelImporterService
             .ToListAsync();
 
         return products.ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private async Task<Dictionary<int, Product>> LoadProductsBySpreadsheetRowIdAsync(
+        IXLWorksheet worksheet,
+        Guid tenantId)
+    {
+        var headerRow = FindHeaderRow(worksheet, "ALIMENTO")
+            ?? throw new InvalidOperationException("Não foi possível localizar o cabeçalho 'ALIMENTO' na aba ESTOQUE.");
+
+        var productsCache = await LoadProductsCacheAsync(tenantId);
+        var productsByRowId = new Dictionary<int, Product>();
+        var lastRow = worksheet.LastRowUsed()?.RowNumber() ?? 0;
+        var spreadsheetRowId = 0;
+
+        for (int r = headerRow + 1; r <= lastRow; r++)
+        {
+            var name = worksheet.Cell(r, 1).GetString().Trim();
+            if (IsFoodSectionBreak(name))
+                break;
+
+            if (string.IsNullOrWhiteSpace(name))
+                continue;
+
+            spreadsheetRowId++;
+            var product = FindProductMatch(productsCache, name);
+            if (product != null)
+                productsByRowId[spreadsheetRowId] = product;
+        }
+
+        return productsByRowId;
     }
 
     private int ImportDailyMatrixMovements(
