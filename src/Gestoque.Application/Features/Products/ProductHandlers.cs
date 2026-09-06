@@ -1,5 +1,6 @@
 using Gestoque.Application.Common.Interfaces;
 using Gestoque.Application.DTOs;
+using Gestoque.Application.Features.Inventory;
 using Gestoque.Domain.Entities;
 using Gestoque.Domain.Enums;
 using MediatR;
@@ -67,20 +68,20 @@ public record GetPosicaoEstoqueQuery(
     ExpiryStatus? FilterExpiry = null
 ) : IRequest<List<PosicaoEstoqueDto>>;
 
-public record DeleteProductsCommand(IReadOnlyCollection<Guid> ProductIds) : IRequest<int>;
+public record RegistrarSaidaProdutosCommand(IReadOnlyCollection<Guid> ProductIds) : IRequest<int>;
 
-public class DeleteProductsCommandHandler : IRequestHandler<DeleteProductsCommand, int>
+public class RegistrarSaidaProdutosCommandHandler : IRequestHandler<RegistrarSaidaProdutosCommand, int>
 {
     private readonly IGestoqueDbContext _context;
     private readonly ICurrentTenantService _currentTenant;
 
-    public DeleteProductsCommandHandler(IGestoqueDbContext context, ICurrentTenantService currentTenant)
+    public RegistrarSaidaProdutosCommandHandler(IGestoqueDbContext context, ICurrentTenantService currentTenant)
     {
         _context = context;
         _currentTenant = currentTenant;
     }
 
-    public async Task<int> Handle(DeleteProductsCommand request, CancellationToken cancellationToken)
+    public async Task<int> Handle(RegistrarSaidaProdutosCommand request, CancellationToken cancellationToken)
     {
         var tenantId = _currentTenant.TenantId
             ?? throw new InvalidOperationException("Nenhuma empresa ativa selecionada.");
@@ -88,25 +89,23 @@ public class DeleteProductsCommandHandler : IRequestHandler<DeleteProductsComman
         var products = await _context.Products
             .Where(product => product.TenantId == tenantId && ids.Contains(product.Id))
             .ToListAsync(cancellationToken);
-        var productIds = products.Select(product => product.Id).ToList();
+        var exitHandler = new RegistrarSaidaCommandHandler(_context, _currentTenant);
+        var exitedProducts = 0;
 
-        var donationItems = await _context.DonationItems
-            .Where(item => item.TenantId == tenantId && productIds.Contains(item.ProductId))
-            .ToListAsync(cancellationToken);
-        var movements = await _context.StockMovements
-            .Where(movement => movement.TenantId == tenantId && productIds.Contains(movement.ProductId))
-            .ToListAsync(cancellationToken);
-        var batches = await _context.Batches
-            .Where(batch => batch.TenantId == tenantId && productIds.Contains(batch.ProductId))
-            .ToListAsync(cancellationToken);
+        foreach (var product in products.Where(product => product.CurrentStock > 0))
+        {
+            await exitHandler.Handle(new RegistrarSaidaCommand(
+                product.Id,
+                BatchId: null,
+                Quantity: product.CurrentStock,
+                Reason: MovementReason.ConsumoCozinha,
+                MovementDate: DateTime.UtcNow,
+                DocumentNumber: null,
+                Notes: "Saída em lote pelo painel de atenção"), cancellationToken);
+            exitedProducts++;
+        }
 
-        _context.DonationItems.RemoveRange(donationItems);
-        _context.StockMovements.RemoveRange(movements);
-        _context.Batches.RemoveRange(batches);
-        _context.Products.RemoveRange(products);
-        await _context.SaveChangesAsync(cancellationToken);
-
-        return products.Count;
+        return exitedProducts;
     }
 }
 

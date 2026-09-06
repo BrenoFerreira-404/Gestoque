@@ -120,8 +120,8 @@
                 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.75rem">
                     @if (selectedCriticalProductIds.Count > 0)
                     {
-                        <RadzenButton Text="Excluir selecionados" Icon="delete" ButtonStyle="ButtonStyle.Danger"
-                                      Click="ExcluirSelecionadosAsync" />
+                        <RadzenButton Text="Dar saída nos selecionados" Icon="output" ButtonStyle="ButtonStyle.Danger"
+                                      Click="DarSaidaSelecionadosAsync" />
                     }
                     <RadzenButton Text="Ver Posição Completa" Icon="chevron_right" ButtonStyle="ButtonStyle.Light"
                                   Click="@(() => Navigation.NavigateTo("estoque"))" />
@@ -265,14 +265,14 @@
             selectedCriticalProductIds.Remove(productId);
     }
 
-    private async Task ExcluirSelecionadosAsync()
+    private async Task DarSaidaSelecionadosAsync()
     {
         if (selectedCriticalProductIds.Count == 0)
             return;
 
-        var deleted = await Mediator.Send(new DeleteProductsCommand(selectedCriticalProductIds.ToList()));
+        var exited = await Mediator.Send(new RegistrarSaidaProdutosCommand(selectedCriticalProductIds.ToList()));
         selectedCriticalProductIds.Clear();
-        NotificationService.Notify(NotificationSeverity.Success, "Itens excluídos", $"{deleted} produto(s) e seus dados relacionados foram removidos.");
+        NotificationService.Notify(NotificationSeverity.Success, "Saídas registradas", $"Saída registrada para {exited} produto(s). Os cadastros foram preservados.");
         await LoadDashboardDataAsync();
     }
 }
