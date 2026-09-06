@@ -56,17 +56,26 @@ else
                         <RadzenBadge BadgeStyle="@(s.IsActive ? BadgeStyle.Success : BadgeStyle.Danger)" Text="@(s.IsActive ? "ATIVO" : "INATIVO")" />
                     </Template>
                 </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Title="Ações" Width="150px" Sortable="false">
+                    <Template Context="s">
+                        <RadzenButton Text="Editar" Icon="edit" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
+                                      Click="@(() => IniciarEdicao(s))" />
+                        <RadzenButton Text="Excluir" Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small"
+                                      Click="@(() => ConfirmarExclusaoAsync(s))" />
+                    </Template>
+                </RadzenDataGridColumn>
             </Columns>
         </RadzenDataGrid>
     </RadzenCard>
 }
 
-<!-- MODAL NOVO FORNECEDOR -->
+<!-- MODAL NOVO/EDITAR FORNECEDOR -->
 @if (showModal)
 {
     <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;">
         <RadzenCard Style="background: white; border-radius: 12px; width: 480px; max-width: 95vw; padding: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-            <h4 style="margin: 0 0 1.25rem 0; font-weight: 700; color: #0f172a;">Cadastrar Novo Fornecedor</h4>
+            <h4 style="margin: 0 0 1.25rem 0; font-weight: 700; color: #0f172a;">@(editingSupplierId.HasValue ? "Editar Fornecedor" : "Cadastrar Novo Fornecedor")</h4>
 
             <div style="display: flex; flex-direction: column; gap: 1rem;">
                 <div>
@@ -108,6 +117,7 @@ else
     private bool loading = true;
     private List<SupplierDto> suppliers = new();
     private bool showModal = false;
+    private Guid? editingSupplierId;
     private IDisposable? _tenantChangedRegistration;
 
     protected override async Task OnInitializedAsync()
@@ -156,21 +166,29 @@ else
 
         try
         {
-            await Mediator.Send(new CreateSupplierCommand(
-                Name: newName,
-                CnpjCpf: newCnpj,
-                Phone: newPhone,
-                Email: newEmail,
-                ContactPerson: newContact
-            ));
+            if (editingSupplierId.HasValue)
+            {
+                await Mediator.Send(new UpdateSupplierCommand(
+                    editingSupplierId.Value, newName, newCnpj, newPhone, newEmail, newContact));
+            }
+            else
+            {
+                await Mediator.Send(new CreateSupplierCommand(
+                    Name: newName,
+                    CnpjCpf: newCnpj,
+                    Phone: newPhone,
+                    Email: newEmail,
+                    ContactPerson: newContact));
+            }
 
-            NotificationService.Notify(NotificationSeverity.Success, "Sucesso", "Fornecedor cadastrado com sucesso!");
+            NotificationService.Notify(NotificationSeverity.Success, "Sucesso", editingSupplierId.HasValue ? "Fornecedor atualizado com sucesso!" : "Fornecedor cadastrado com sucesso!");
 
             newName = string.Empty;
             newCnpj = null;
             newPhone = null;
             newEmail = null;
             newContact = null;
+            editingSupplierId = null;
             showModal = false;
 
             await LoadSuppliersAsync();
@@ -183,8 +201,37 @@ else
 
     private async Task ConfirmarSalvarFornecedorAsync()
     {
-        if (await DialogService.Confirm("Tem certeza que deseja salvar este fornecedor?", "Confirmar salvamento", new ConfirmOptions { OkButtonText = "Sim", CancelButtonText = "Não" }) == true)
+        var action = editingSupplierId.HasValue ? "atualizar" : "salvar";
+        if (await DialogService.Confirm($"Tem certeza que deseja {action} este fornecedor?", "Confirmar operação", new ConfirmOptions { OkButtonText = "Sim", CancelButtonText = "Não" }) == true)
             await SalvarFornecedorAsync();
+    }
+
+    private void IniciarEdicao(SupplierDto supplier)
+    {
+        editingSupplierId = supplier.Id;
+        newName = supplier.Name;
+        newCnpj = supplier.CnpjCpf;
+        newPhone = supplier.Phone;
+        newEmail = supplier.Email;
+        newContact = supplier.ContactPerson;
+        showModal = true;
+    }
+
+    private async Task ConfirmarExclusaoAsync(SupplierDto supplier)
+    {
+        if (await DialogService.Confirm($"Tem certeza que deseja excluir o fornecedor {supplier.Name}? Os lotes existentes serão preservados sem fornecedor.", "Confirmar exclusão", new ConfirmOptions { OkButtonText = "Sim", CancelButtonText = "Não" }) != true)
+            return;
+
+        try
+        {
+            await Mediator.Send(new DeleteSupplierCommand(supplier.Id));
+            NotificationService.Notify(NotificationSeverity.Success, "Fornecedor excluído", "O fornecedor foi removido e o histórico dos lotes foi preservado.");
+            await LoadSuppliersAsync();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Erro ao excluir", ex.Message);
+        }
     }
 }
 

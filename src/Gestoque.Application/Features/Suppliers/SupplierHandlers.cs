@@ -50,6 +50,75 @@ public class CreateSupplierCommandHandler : IRequestHandler<CreateSupplierComman
 
 public record GetSuppliersQuery : IRequest<List<SupplierDto>>;
 
+public record UpdateSupplierCommand(
+    Guid SupplierId,
+    string Name,
+    string? CnpjCpf,
+    string? Phone,
+    string? Email,
+    string? ContactPerson
+) : IRequest;
+
+public class UpdateSupplierCommandHandler : IRequestHandler<UpdateSupplierCommand>
+{
+    private readonly IGestoqueDbContext _context;
+    private readonly ICurrentTenantService _currentTenant;
+
+    public UpdateSupplierCommandHandler(IGestoqueDbContext context, ICurrentTenantService currentTenant)
+    {
+        _context = context;
+        _currentTenant = currentTenant;
+    }
+
+    public async Task Handle(UpdateSupplierCommand request, CancellationToken cancellationToken)
+    {
+        var tenantId = _currentTenant.TenantId
+            ?? throw new InvalidOperationException("Nenhuma empresa ativa selecionada.");
+        var supplier = await _context.Suppliers
+            .FirstOrDefaultAsync(item => item.Id == request.SupplierId && item.TenantId == tenantId, cancellationToken)
+            ?? throw new KeyNotFoundException("Fornecedor não encontrado.");
+
+        supplier.Name = request.Name;
+        supplier.CnpjCpf = request.CnpjCpf;
+        supplier.Phone = request.Phone;
+        supplier.Email = request.Email;
+        supplier.ContactPerson = request.ContactPerson;
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+}
+
+public record DeleteSupplierCommand(Guid SupplierId) : IRequest;
+
+public class DeleteSupplierCommandHandler : IRequestHandler<DeleteSupplierCommand>
+{
+    private readonly IGestoqueDbContext _context;
+    private readonly ICurrentTenantService _currentTenant;
+
+    public DeleteSupplierCommandHandler(IGestoqueDbContext context, ICurrentTenantService currentTenant)
+    {
+        _context = context;
+        _currentTenant = currentTenant;
+    }
+
+    public async Task Handle(DeleteSupplierCommand request, CancellationToken cancellationToken)
+    {
+        var tenantId = _currentTenant.TenantId
+            ?? throw new InvalidOperationException("Nenhuma empresa ativa selecionada.");
+        var supplier = await _context.Suppliers
+            .FirstOrDefaultAsync(item => item.Id == request.SupplierId && item.TenantId == tenantId, cancellationToken)
+            ?? throw new KeyNotFoundException("Fornecedor não encontrado.");
+
+        var batches = await _context.Batches
+            .Where(batch => batch.TenantId == tenantId && batch.SupplierId == request.SupplierId)
+            .ToListAsync(cancellationToken);
+        foreach (var batch in batches)
+            batch.SupplierId = null;
+
+        _context.Suppliers.Remove(supplier);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+}
+
 public class GetSuppliersQueryHandler : IRequestHandler<GetSuppliersQuery, List<SupplierDto>>
 {
     private readonly IGestoqueDbContext _context;
