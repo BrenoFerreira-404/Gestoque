@@ -117,7 +117,7 @@ public class CqrsInventoryTests
         Assert.Equal(50, lote2.CurrentQuantity); // 50 intacto
 
         // 4. Testar Query da Posição do Estoque
-        var posicaoHandler = new GetPosicaoEstoqueQueryHandler(context);
+        var posicaoHandler = new GetPosicaoEstoqueQueryHandler(context, tenantService);
         var posicao = await posicaoHandler.Handle(new GetPosicaoEstoqueQuery(), CancellationToken.None);
 
         Assert.Single(posicao);
