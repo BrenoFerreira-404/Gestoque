@@ -67,6 +67,49 @@ public record GetPosicaoEstoqueQuery(
     ExpiryStatus? FilterExpiry = null
 ) : IRequest<List<PosicaoEstoqueDto>>;
 
+public record DeleteProductsCommand(IReadOnlyCollection<Guid> ProductIds) : IRequest<int>;
+
+public class DeleteProductsCommandHandler : IRequestHandler<DeleteProductsCommand, int>
+{
+    private readonly IGestoqueDbContext _context;
+    private readonly ICurrentTenantService _currentTenant;
+
+    public DeleteProductsCommandHandler(IGestoqueDbContext context, ICurrentTenantService currentTenant)
+    {
+        _context = context;
+        _currentTenant = currentTenant;
+    }
+
+    public async Task<int> Handle(DeleteProductsCommand request, CancellationToken cancellationToken)
+    {
+        var tenantId = _currentTenant.TenantId
+            ?? throw new InvalidOperationException("Nenhuma empresa ativa selecionada.");
+        var ids = request.ProductIds.Distinct().ToList();
+        var products = await _context.Products
+            .Where(product => product.TenantId == tenantId && ids.Contains(product.Id))
+            .ToListAsync(cancellationToken);
+        var productIds = products.Select(product => product.Id).ToList();
+
+        var donationItems = await _context.DonationItems
+            .Where(item => item.TenantId == tenantId && productIds.Contains(item.ProductId))
+            .ToListAsync(cancellationToken);
+        var movements = await _context.StockMovements
+            .Where(movement => movement.TenantId == tenantId && productIds.Contains(movement.ProductId))
+            .ToListAsync(cancellationToken);
+        var batches = await _context.Batches
+            .Where(batch => batch.TenantId == tenantId && productIds.Contains(batch.ProductId))
+            .ToListAsync(cancellationToken);
+
+        _context.DonationItems.RemoveRange(donationItems);
+        _context.StockMovements.RemoveRange(movements);
+        _context.Batches.RemoveRange(batches);
+        _context.Products.RemoveRange(products);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return products.Count;
+    }
+}
+
 public class GetPosicaoEstoqueQueryHandler : IRequestHandler<GetPosicaoEstoqueQuery, List<PosicaoEstoqueDto>>
 {
     private readonly IGestoqueDbContext _context;

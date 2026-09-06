@@ -72,9 +72,27 @@ else
                         <RadzenButton Text="Gerenciar Estoque" Icon="inventory_2" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small"
                                       Click="@(() => Navigation.NavigateTo("estoque"))" />
                     }
+                    <RadzenButton Text="Excluir" Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small"
+                                  Click="@(() => empresaParaExcluir = tenant)" />
                 </div>
             </RadzenCard>
         }
+    </div>
+}
+
+@if (empresaParaExcluir != null)
+{
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <RadzenCard Style="background: #ffffff; border-radius: 14px; width: 460px; max-width: 95vw; padding: 1.75rem;">
+            <h4 style="margin: 0 0 0.75rem 0;">Excluir empresa?</h4>
+            <p style="margin: 0 0 1.25rem 0; color: #4b5563;">
+                A empresa <strong>@empresaParaExcluir.NomeFantasia</strong> e todos os produtos, lotes, movimentos, doações, fornecedores e categorias serão apagados permanentemente.
+            </p>
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                <RadzenButton Text="Cancelar" ButtonStyle="ButtonStyle.Light" Click="@(() => empresaParaExcluir = null)" />
+                <RadzenButton Text="Excluir permanentemente" Icon="delete_forever" ButtonStyle="ButtonStyle.Danger" Click="ExcluirEmpresaAsync" />
+            </div>
+        </RadzenCard>
     </div>
 }
 
@@ -125,6 +143,7 @@ else
     private bool loading = true;
     private List<TenantDto> tenants = new();
     private bool showModal = false;
+    private TenantDto? empresaParaExcluir;
 
     private string newNomeFantasia = string.Empty;
     private string newRazaoSocial = string.Empty;
@@ -189,6 +208,28 @@ else
         catch (Exception ex)
         {
             NotificationService.Notify(NotificationSeverity.Error, "Erro ao criar empresa", ex.Message);
+        }
+    }
+
+    private async Task ExcluirEmpresaAsync()
+    {
+        if (empresaParaExcluir == null)
+            return;
+
+        var tenant = empresaParaExcluir;
+        try
+        {
+            await Mediator.Send(new DeleteTenantCommand(tenant.Id));
+            if (TenantSession.SelectedTenantId == tenant.Id)
+                Navigation.NavigateTo("/");
+
+            empresaParaExcluir = null;
+            await LoadTenantsAsync();
+            NotificationService.Notify(NotificationSeverity.Success, "Empresa excluída", "A empresa e seus dados foram removidos.");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Erro ao excluir empresa", ex.Message);
         }
     }
 }

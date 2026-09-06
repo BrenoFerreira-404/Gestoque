@@ -2,6 +2,7 @@
 @inject IMediator Mediator
 @inject TenantSessionState TenantSession
 @inject NavigationManager Navigation
+@inject NotificationService NotificationService
 
 <PageTitle>Dashboard - Gestoque Pro</PageTitle>
 
@@ -116,13 +117,26 @@
                     <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H4" Style="margin: 0;">Itens que Exigem Atenção Imediata</RadzenText>
                     <RadzenText TextStyle="TextStyle.Caption">Produtos abaixo do estoque mínimo ou com validade próxima</RadzenText>
                 </RadzenStack>
-                <RadzenButton Text="Ver Posição Completa" Icon="chevron_right" ButtonStyle="ButtonStyle.Light"
-                              Click="@(() => Navigation.NavigateTo("estoque"))" />
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.75rem">
+                    @if (selectedCriticalProductIds.Count > 0)
+                    {
+                        <RadzenButton Text="Excluir selecionados" Icon="delete" ButtonStyle="ButtonStyle.Danger"
+                                      Click="ExcluirSelecionadosAsync" />
+                    }
+                    <RadzenButton Text="Ver Posição Completa" Icon="chevron_right" ButtonStyle="ButtonStyle.Light"
+                                  Click="@(() => Navigation.NavigateTo("estoque"))" />
+                </RadzenStack>
             </RadzenStack>
 
             <RadzenDataGrid Data="@criticalItems" TItem="PosicaoEstoqueDto" AllowPaging="true" PageSize="6"
                             EmptyText="Nenhum item crítico no momento!">
                 <Columns>
+                    <RadzenDataGridColumn TItem="PosicaoEstoqueDto" Title="Selecionar" Width="90px" Sortable="false">
+                        <Template Context="item">
+                            <input type="checkbox" checked="@IsCriticalProductSelected(item.ProductId)"
+                                   @onchange="@(args => SetCriticalProductSelection(item.ProductId, args.Value is true))" />
+                        </Template>
+                    </RadzenDataGridColumn>
                     <RadzenDataGridColumn Property="ProductName" Title="Alimento / Produto" Width="280px">
                         <Template Context="item">
                             <RadzenText TextStyle="TextStyle.Body1" Style="font-weight: 600;">@item.ProductName</RadzenText>
@@ -194,6 +208,7 @@
     private bool loading = true;
     private DashboardKpisDto? kpis;
     private List<PosicaoEstoqueDto> criticalItems = new();
+    private HashSet<Guid> selectedCriticalProductIds = new();
     private IDisposable? _tenantChangedRegistration;
 
     protected override async Task OnInitializedAsync()
@@ -226,6 +241,7 @@
                 .Where(p => p.IsBelowMinimum || p.ExpiryStatus == ExpiryStatus.ProximoVencimento || p.ExpiryStatus == ExpiryStatus.Critico || p.ExpiryStatus == ExpiryStatus.Vencido)
                 .Take(10)
                 .ToList();
+            selectedCriticalProductIds.RemoveWhere(id => criticalItems.All(item => item.ProductId != id));
         }
         catch
         {
@@ -237,5 +253,26 @@
         {
             loading = false;
         }
+    }
+
+    private bool IsCriticalProductSelected(Guid productId) => selectedCriticalProductIds.Contains(productId);
+
+    private void SetCriticalProductSelection(Guid productId, bool selected)
+    {
+        if (selected)
+            selectedCriticalProductIds.Add(productId);
+        else
+            selectedCriticalProductIds.Remove(productId);
+    }
+
+    private async Task ExcluirSelecionadosAsync()
+    {
+        if (selectedCriticalProductIds.Count == 0)
+            return;
+
+        var deleted = await Mediator.Send(new DeleteProductsCommand(selectedCriticalProductIds.ToList()));
+        selectedCriticalProductIds.Clear();
+        NotificationService.Notify(NotificationSeverity.Success, "Itens excluídos", $"{deleted} produto(s) e seus dados relacionados foram removidos.");
+        await LoadDashboardDataAsync();
     }
 }
