@@ -238,7 +238,11 @@
             kpis = await Mediator.Send(new GetDashboardKpisQuery());
             var allStock = await Mediator.Send(new GetPosicaoEstoqueQuery());
             criticalItems = allStock
-                .Where(p => p.IsBelowMinimum || p.ExpiryStatus == ExpiryStatus.ProximoVencimento || p.ExpiryStatus == ExpiryStatus.Critico || p.ExpiryStatus == ExpiryStatus.Vencido)
+                .Where(p => p.CurrentStock > 0
+                    && (p.IsBelowMinimum
+                        || p.ExpiryStatus == ExpiryStatus.ProximoVencimento
+                        || p.ExpiryStatus == ExpiryStatus.Critico
+                        || p.ExpiryStatus == ExpiryStatus.Vencido))
                 .Take(10)
                 .ToList();
             selectedCriticalProductIds.RemoveWhere(id => criticalItems.All(item => item.ProductId != id));
