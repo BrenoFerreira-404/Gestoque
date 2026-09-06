@@ -163,3 +163,4 @@ C:\Projetos_Oficial\Gestoque\tests\Gestoque.Tests\obj\Debug\net8.0\Gestoque.Test
 C:\Projetos_Oficial\Gestoque\tests\Gestoque.Tests\obj\Debug\net8.0\ref\Gestoque.Tests.dll
 C:\Projetos_Oficial\Gestoque\tests\Gestoque.Tests\bin\Debug\net8.0\Npgsql.dll
 C:\Projetos_Oficial\Gestoque\tests\Gestoque.Tests\bin\Debug\net8.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
+C:\Projetos_Oficial\Gestoque\tests\Gestoque.Tests\obj\Debug\net8.0\Gestoque.Tests.sourcelink.json

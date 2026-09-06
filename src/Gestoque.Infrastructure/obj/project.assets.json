@@ -2764,7 +2764,7 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\heitorhog\\.nuget\\packages\\": {},
+    "C:\\Users\\heitorhog\\AppData\\Local\\Temp\\cursor-sandbox-cache\\f3f26ab9ed64f2e67208a649756845d6\\nuget": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
@@ -2773,7 +2773,7 @@
       "projectUniqueName": "C:\\Projetos_Oficial\\Gestoque\\src\\Gestoque.Infrastructure\\Gestoque.Infrastructure.csproj",
       "projectName": "Gestoque.Infrastructure",
       "projectPath": "C:\\Projetos_Oficial\\Gestoque\\src\\Gestoque.Infrastructure\\Gestoque.Infrastructure.csproj",
-      "packagesPath": "C:\\Users\\heitorhog\\.nuget\\packages\\",
+      "packagesPath": "C:\\Users\\heitorhog\\AppData\\Local\\Temp\\cursor-sandbox-cache\\f3f26ab9ed64f2e67208a649756845d6\\nuget",
       "outputPath": "C:\\Projetos_Oficial\\Gestoque\\src\\Gestoque.Infrastructure\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [

@@ -17,3 +17,4 @@ C:\Projetos_Oficial\Gestoque\src\Gestoque.Infrastructure\obj\Debug\net8.0\Gestoq
 C:\Projetos_Oficial\Gestoque\src\Gestoque.Infrastructure\obj\Debug\net8.0\ref\Gestoque.Infrastructure.dll
 C:\Projetos_Oficial\Gestoque\src\Gestoque.Infrastructure\bin\Debug\net8.0\Gestoque.Infrastructure.runtimeconfig.json
 C:\Projetos_Oficial\Gestoque\src\Gestoque.Infrastructure\obj\Debug\net8.0\Gestoque.Infrastructure.genruntimeconfig.cache
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Infrastructure\obj\Debug\net8.0\Gestoque.Infrastructure.sourcelink.json

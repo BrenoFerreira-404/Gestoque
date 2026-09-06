@@ -10,7 +10,7 @@
         "projectUniqueName": "C:\\Projetos_Oficial\\Gestoque\\src\\Gestoque.Application\\Gestoque.Application.csproj",
         "projectName": "Gestoque.Application",
         "projectPath": "C:\\Projetos_Oficial\\Gestoque\\src\\Gestoque.Application\\Gestoque.Application.csproj",
-        "packagesPath": "C:\\Users\\heitorhog\\.nuget\\packages\\",
+        "packagesPath": "C:\\Users\\heitorhog\\AppData\\Local\\Temp\\cursor-sandbox-cache\\f3f26ab9ed64f2e67208a649756845d6\\nuget",
         "outputPath": "C:\\Projetos_Oficial\\Gestoque\\src\\Gestoque.Application\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
@@ -96,7 +96,7 @@
         "projectUniqueName": "C:\\Projetos_Oficial\\Gestoque\\src\\Gestoque.Domain\\Gestoque.Domain.csproj",
         "projectName": "Gestoque.Domain",
         "projectPath": "C:\\Projetos_Oficial\\Gestoque\\src\\Gestoque.Domain\\Gestoque.Domain.csproj",
-        "packagesPath": "C:\\Users\\heitorhog\\.nuget\\packages\\",
+        "packagesPath": "C:\\Users\\heitorhog\\AppData\\Local\\Temp\\cursor-sandbox-cache\\f3f26ab9ed64f2e67208a649756845d6\\nuget",
         "outputPath": "C:\\Projetos_Oficial\\Gestoque\\src\\Gestoque.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [

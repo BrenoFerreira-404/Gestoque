@@ -9,3 +9,4 @@ C:\Projetos_Oficial\Gestoque\src\Gestoque.Domain\obj\Debug\net8.0\Gestoque.Domai
 C:\Projetos_Oficial\Gestoque\src\Gestoque.Domain\obj\Debug\net8.0\refint\Gestoque.Domain.dll
 C:\Projetos_Oficial\Gestoque\src\Gestoque.Domain\obj\Debug\net8.0\Gestoque.Domain.pdb
 C:\Projetos_Oficial\Gestoque\src\Gestoque.Domain\obj\Debug\net8.0\ref\Gestoque.Domain.dll
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Domain\obj\Debug\net8.0\Gestoque.Domain.sourcelink.json
