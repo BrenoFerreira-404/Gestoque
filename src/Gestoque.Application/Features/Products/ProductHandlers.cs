@@ -127,6 +127,7 @@ public class GetPosicaoEstoqueQueryHandler : IRequestHandler<GetPosicaoEstoqueQu
 
         var query = _context.Products
             .AsNoTracking()
+            .AsSplitQuery()
             .Include(p => p.Category)
             .Include(p => p.Batches.Where(b => b.CurrentQuantity > 0))
             .Where(p => p.IsActive && p.TenantId == tenantId)
