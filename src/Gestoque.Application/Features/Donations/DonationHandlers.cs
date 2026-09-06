@@ -42,12 +42,16 @@ public class RegistrarDoacaoCommandHandler : IRequestHandler<RegistrarDoacaoComm
         if (request.Items == null || request.Items.Count == 0)
             throw new ArgumentException("A doação deve conter pelo menos um item.");
 
+        var donationDate = request.DonationDate.Kind == DateTimeKind.Utc
+            ? request.DonationDate
+            : DateTime.SpecifyKind(request.DonationDate, DateTimeKind.Utc);
+
         var donation = new Donation
         {
             TenantId = tenantId,
             DonorName = request.DonorName,
             DonorContact = request.DonorContact,
-            DonationDate = request.DonationDate,
+            DonationDate = donationDate,
             ReceiptNumber = request.ReceiptNumber,
             Notes = request.Notes
         };
@@ -56,7 +60,8 @@ public class RegistrarDoacaoCommandHandler : IRequestHandler<RegistrarDoacaoComm
 
         foreach (var itemInput in request.Items)
         {
-            var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == itemInput.ProductId, cancellationToken)
+            var product = await _context.Products
+                .FirstOrDefaultAsync(p => p.Id == itemInput.ProductId && p.TenantId == tenantId, cancellationToken)
                 ?? throw new KeyNotFoundException($"Produto {itemInput.ProductId} não encontrado.");
 
             var donationItem = new DonationItem
@@ -65,7 +70,11 @@ public class RegistrarDoacaoCommandHandler : IRequestHandler<RegistrarDoacaoComm
                 Donation = donation,
                 ProductId = product.Id,
                 Quantity = itemInput.Quantity,
-                ExpiryDate = itemInput.ExpiryDate,
+                ExpiryDate = itemInput.ExpiryDate.HasValue
+                    ? (itemInput.ExpiryDate.Value.Kind == DateTimeKind.Utc
+                        ? itemInput.ExpiryDate
+                        : DateTime.SpecifyKind(itemInput.ExpiryDate.Value, DateTimeKind.Utc))
+                    : null,
                 Brand = itemInput.Brand ?? product.Brand,
                 Notes = itemInput.Notes
             };
@@ -76,11 +85,15 @@ public class RegistrarDoacaoCommandHandler : IRequestHandler<RegistrarDoacaoComm
             {
                 TenantId = tenantId,
                 ProductId = product.Id,
-                BatchNumber = $"DOA-{request.DonationDate:yyyyMMdd}-{Guid.NewGuid().ToString()[..4].ToUpper()}",
-                ExpiryDate = itemInput.ExpiryDate,
+                BatchNumber = $"DOA-{donationDate:yyyyMMdd}-{Guid.NewGuid().ToString()[..4].ToUpper()}",
+                ExpiryDate = itemInput.ExpiryDate.HasValue
+                    ? (itemInput.ExpiryDate.Value.Kind == DateTimeKind.Utc
+                        ? itemInput.ExpiryDate
+                        : DateTime.SpecifyKind(itemInput.ExpiryDate.Value, DateTimeKind.Utc))
+                    : null,
                 InitialQuantity = itemInput.Quantity,
                 CurrentQuantity = itemInput.Quantity,
-                ReceivedDate = request.DonationDate,
+                ReceivedDate = donationDate,
                 Brand = itemInput.Brand ?? product.Brand,
                 Notes = $"Doação de: {request.DonorName}"
             };
@@ -98,7 +111,7 @@ public class RegistrarDoacaoCommandHandler : IRequestHandler<RegistrarDoacaoComm
                 MovementType = MovementType.Entrada,
                 MovementReason = MovementReason.DoacaoRecebida,
                 Quantity = itemInput.Quantity,
-                MovementDate = request.DonationDate,
+                MovementDate = donationDate,
                 DocumentNumber = request.ReceiptNumber,
                 Notes = $"Doação de {request.DonorName}: {itemInput.Notes}"
             };

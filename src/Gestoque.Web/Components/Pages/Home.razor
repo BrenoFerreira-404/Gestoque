@@ -5,215 +5,218 @@
 
 <PageTitle>Dashboard - Gestoque Pro</PageTitle>
 
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-    <div>
-        <h2 style="font-weight: 700; color: #1e293b; margin: 0;">Painel de Controle</h2>
-        <p style="color: #64748b; margin: 0; font-size: 0.95rem;">
-            Empresa Ativa: <strong style="color: #0284c7;">@TenantSession.SelectedTenantName</strong>
-        </p>
-    </div>
+<RadzenStack Gap="1.5rem">
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
+                 JustifyContent="JustifyContent.SpaceBetween" Wrap="FlexWrap.Wrap" Gap="1rem">
+        <RadzenStack Gap="0.25rem">
+            <RadzenText TextStyle="TextStyle.H4" TagName="TagName.H2" Style="margin: 0;">Painel de Controle</RadzenText>
+            <RadzenText TextStyle="TextStyle.Subtitle2">
+                Empresa Ativa: <strong>@TenantSession.SelectedTenantName</strong>
+            </RadzenText>
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem">
+            <RadzenButton Text="Registrar Entrada" Icon="input" ButtonStyle="ButtonStyle.Success"
+                          Click="@(() => Navigation.NavigateTo("entradas"))" />
+            <RadzenButton Text="Registrar Saída" Icon="output" ButtonStyle="ButtonStyle.Danger"
+                          Click="@(() => Navigation.NavigateTo("saidas"))" />
+        </RadzenStack>
+    </RadzenStack>
 
-    <div style="display: flex; gap: 0.75rem;">
-        <RadzenButton Text="Registrar Entrada" Icon="input" ButtonStyle="ButtonStyle.Success" Click="@(() => Navigation.NavigateTo("entradas"))" />
-        <RadzenButton Text="Registrar Saída" Icon="output" ButtonStyle="ButtonStyle.Danger" Click="@(() => Navigation.NavigateTo("saidas"))" />
-    </div>
-</div>
+    @if (loading)
+    {
+        <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+    }
+    else if (kpis != null)
+    {
+        <RadzenRow Gap="1rem">
+            <RadzenColumn Size="12" SizeMD="6" SizeLG="4" SizeXL="2">
+                <RadzenCard>
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+                        <RadzenStack Gap="0">
+                            <RadzenText TextStyle="TextStyle.Overline">Total de Itens</RadzenText>
+                            <RadzenText TextStyle="TextStyle.H3" Style="margin: 0;">@kpis.TotalProducts</RadzenText>
+                        </RadzenStack>
+                        <RadzenIcon Icon="inventory_2" Style="font-size: 2rem; color: var(--rz-primary);" />
+                    </RadzenStack>
+                    <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary">Produtos ativos no estoque</RadzenText>
+                </RadzenCard>
+            </RadzenColumn>
 
-@if (loading)
-{
-    <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Style="margin-bottom: 1.5rem;" />
-}
-else if (kpis != null)
-{
-    <!-- CARDS DE KPIS -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-        
-        <!-- Total de Produtos -->
-        <RadzenCard Style="background: white; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 1.25rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <span style="color: #64748b; font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Total de Itens</span>
-                    <h3 style="font-weight: 700; color: #0f172a; margin: 0.25rem 0 0 0; font-size: 1.8rem;">@kpis.TotalProducts</h3>
-                </div>
-                <div style="background: #e0f2fe; padding: 12px; border-radius: 50%;">
-                    <RadzenIcon Icon="inventory_2" Style="color: #0284c7; font-size: 1.8rem;" />
-                </div>
-            </div>
-            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #64748b;">
-                Produtos ativos no estoque
-            </div>
-        </RadzenCard>
+            <RadzenColumn Size="12" SizeMD="6" SizeLG="4" SizeXL="2">
+                <RadzenCard Style="border-left: 4px solid var(--rz-danger);">
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+                        <RadzenStack Gap="0">
+                            <RadzenText TextStyle="TextStyle.Overline">Abaixo do Mínimo</RadzenText>
+                            <RadzenText TextStyle="TextStyle.H3" Style="margin: 0; color: var(--rz-danger);">@kpis.ProductsBelowMinimum</RadzenText>
+                        </RadzenStack>
+                        <RadzenIcon Icon="warning" Style="font-size: 2rem; color: var(--rz-danger);" />
+                    </RadzenStack>
+                    <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-danger);">Necessitam de reposição urgente</RadzenText>
+                </RadzenCard>
+            </RadzenColumn>
 
-        <!-- Abaixo do Mínimo -->
-        <RadzenCard Style="background: white; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 1.25rem; border-left: 4px solid #ef4444;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <span style="color: #64748b; font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Abaixo do Mínimo</span>
-                    <h3 style="font-weight: 700; color: #dc2626; margin: 0.25rem 0 0 0; font-size: 1.8rem;">@kpis.ProductsBelowMinimum</h3>
-                </div>
-                <div style="background: #fee2e2; padding: 12px; border-radius: 50%;">
-                    <RadzenIcon Icon="warning" Style="color: #dc2626; font-size: 1.8rem;" />
-                </div>
-            </div>
-            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #dc2626; font-weight: 500;">
-                Necessitam de reposição urgente
-            </div>
-        </RadzenCard>
+            <RadzenColumn Size="12" SizeMD="6" SizeLG="4" SizeXL="2">
+                <RadzenCard Style="border-left: 4px solid var(--rz-warning);">
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+                        <RadzenStack Gap="0">
+                            <RadzenText TextStyle="TextStyle.Overline">Próximos ao Vencimento</RadzenText>
+                            <RadzenText TextStyle="TextStyle.H3" Style="margin: 0; color: var(--rz-warning);">@kpis.ProductsExpiringSoon</RadzenText>
+                        </RadzenStack>
+                        <RadzenIcon Icon="schedule" Style="font-size: 2rem; color: var(--rz-warning);" />
+                    </RadzenStack>
+                    <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-warning);">Vencem nos próximos 30 dias</RadzenText>
+                </RadzenCard>
+            </RadzenColumn>
 
-        <!-- Próximos do Vencimento (<= 30 dias) -->
-        <RadzenCard Style="background: white; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 1.25rem; border-left: 4px solid #f59e0b;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <span style="color: #64748b; font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Próximos ao Vencimento</span>
-                    <h3 style="font-weight: 700; color: #d97706; margin: 0.25rem 0 0 0; font-size: 1.8rem;">@kpis.ProductsExpiringSoon</h3>
-                </div>
-                <div style="background: #fef3c7; padding: 12px; border-radius: 50%;">
-                    <RadzenIcon Icon="schedule" Style="color: #d97706; font-size: 1.8rem;" />
-                </div>
-            </div>
-            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #d97706; font-weight: 500;">
-                Vencem nos próximos 30 dias
-            </div>
-        </RadzenCard>
+            <RadzenColumn Size="12" SizeMD="6" SizeLG="4" SizeXL="2">
+                <RadzenCard Style="border-left: 4px solid var(--rz-danger-darker);">
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+                        <RadzenStack Gap="0">
+                            <RadzenText TextStyle="TextStyle.Overline">Itens Vencidos</RadzenText>
+                            <RadzenText TextStyle="TextStyle.H3" Style="margin: 0; color: var(--rz-danger-darker);">@kpis.ProductsExpired</RadzenText>
+                        </RadzenStack>
+                        <RadzenIcon Icon="event_busy" Style="font-size: 2rem; color: var(--rz-danger-darker);" />
+                    </RadzenStack>
+                    <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-danger-darker);">Bloqueados para consumo</RadzenText>
+                </RadzenCard>
+            </RadzenColumn>
 
-        <!-- Vencidos -->
-        <RadzenCard Style="background: white; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 1.25rem; border-left: 4px solid #991b1b;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <span style="color: #64748b; font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Itens Vencidos</span>
-                    <h3 style="font-weight: 700; color: #991b1b; margin: 0.25rem 0 0 0; font-size: 1.8rem;">@kpis.ProductsExpired</h3>
-                </div>
-                <div style="background: #fee2e2; padding: 12px; border-radius: 50%;">
-                    <RadzenIcon Icon="event_busy" Style="color: #991b1b; font-size: 1.8rem;" />
-                </div>
-            </div>
-            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #991b1b; font-weight: 500;">
-                Bloqueados para consumo
-            </div>
-        </RadzenCard>
+            <RadzenColumn Size="12" SizeMD="6" SizeLG="4" SizeXL="2">
+                <RadzenCard>
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+                        <RadzenStack Gap="0">
+                            <RadzenText TextStyle="TextStyle.Overline">Entradas no Mês</RadzenText>
+                            <RadzenText TextStyle="TextStyle.H3" Style="margin: 0; color: var(--rz-success);">@kpis.TotalEntradasMonth.ToString("N0")</RadzenText>
+                        </RadzenStack>
+                        <RadzenIcon Icon="arrow_downward" Style="font-size: 2rem; color: var(--rz-success);" />
+                    </RadzenStack>
+                    <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-success);">Unidades recebidas neste mês</RadzenText>
+                </RadzenCard>
+            </RadzenColumn>
 
-        <!-- Entradas no Mês -->
-        <RadzenCard Style="background: white; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 1.25rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <span style="color: #64748b; font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Entradas no Mês</span>
-                    <h3 style="font-weight: 700; color: #16a34a; margin: 0.25rem 0 0 0; font-size: 1.8rem;">@kpis.TotalEntradasMonth.ToString("N0")</h3>
-                </div>
-                <div style="background: #dcfce7; padding: 12px; border-radius: 50%;">
-                    <RadzenIcon Icon="arrow_downward" Style="color: #16a34a; font-size: 1.8rem;" />
-                </div>
-            </div>
-            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #16a34a;">
-                Unidades recebidas neste mês
-            </div>
-        </RadzenCard>
+            <RadzenColumn Size="12" SizeMD="6" SizeLG="4" SizeXL="2">
+                <RadzenCard>
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+                        <RadzenStack Gap="0">
+                            <RadzenText TextStyle="TextStyle.Overline">Saídas no Mês</RadzenText>
+                            <RadzenText TextStyle="TextStyle.H3" Style="margin: 0; color: var(--rz-secondary);">@kpis.TotalSaidasMonth.ToString("N0")</RadzenText>
+                        </RadzenStack>
+                        <RadzenIcon Icon="arrow_upward" Style="font-size: 2rem; color: var(--rz-secondary);" />
+                    </RadzenStack>
+                    <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary">Unidades consumidas/baixadas</RadzenText>
+                </RadzenCard>
+            </RadzenColumn>
+        </RadzenRow>
 
-        <!-- Saídas no Mês -->
-        <RadzenCard Style="background: white; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 1.25rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <span style="color: #64748b; font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Saídas no Mês</span>
-                    <h3 style="font-weight: 700; color: #ea580c; margin: 0.25rem 0 0 0; font-size: 1.8rem;">@kpis.TotalSaidasMonth.ToString("N0")</h3>
-                </div>
-                <div style="background: #ffedd5; padding: 12px; border-radius: 50%;">
-                    <RadzenIcon Icon="arrow_upward" Style="color: #ea580c; font-size: 1.8rem;" />
-                </div>
-            </div>
-            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #ea580c;">
-                Unidades consumidas/baixadas
-            </div>
-        </RadzenCard>
-    </div>
+        <RadzenCard>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
+                         JustifyContent="JustifyContent.SpaceBetween" Wrap="FlexWrap.Wrap" Gap="1rem"
+                         Style="margin-bottom: 1rem;">
+                <RadzenStack Gap="0.25rem">
+                    <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H4" Style="margin: 0;">Itens que Exigem Atenção Imediata</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Caption">Produtos abaixo do estoque mínimo ou com validade próxima</RadzenText>
+                </RadzenStack>
+                <RadzenButton Text="Ver Posição Completa" Icon="chevron_right" ButtonStyle="ButtonStyle.Light"
+                              Click="@(() => Navigation.NavigateTo("estoque"))" />
+            </RadzenStack>
 
-    <!-- SEÇÃO DE ITENS CRÍTICOS / ALERTA DE REPOSIÇÃO E VALIDADE -->
-    <RadzenCard Style="background: white; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 1.5rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <div>
-                <h4 style="font-weight: 700; color: #1e293b; margin: 0;">Itens que Exigem Atenção Imediata</h4>
-                <span style="color: #64748b; font-size: 0.85rem;">Produtos abaixo do estoque mínimo ou com validade próxima</span>
-            </div>
-            <RadzenButton Text="Ver Posição Completa" Icon="chevron_right" ButtonStyle="ButtonStyle.Light" Click="@(() => Navigation.NavigateTo("estoque"))" />
-        </div>
-
-        <RadzenDataGrid Data="@criticalItems" TItem="PosicaoEstoqueDto" AllowPaging="true" PageSize="6" EmptyText="Nenhum item crítico no momento!">
-            <Columns>
-                <RadzenDataGridColumn Property="ProductName" Title="Alimento / Produto" Width="280px">
-                    <Template Context="item">
-                        <strong style="color: #1e293b;">@item.ProductName</strong>
-                        @if (item.IsUniqueItem)
-                        {
-                            <RadzenBadge BadgeStyle="BadgeStyle.Warning" Text="ITEM ÚNICO" IsPill="true" Style="margin-left: 6px; font-size: 0.7rem;" />
-                        }
-                    </Template>
-                </RadzenDataGridColumn>
-
-                <RadzenDataGridColumn Property="Brand" Title="Marca" Width="140px">
-                    <Template Context="item">
-                        <span>@(string.IsNullOrEmpty(item.Brand) ? "-" : item.Brand)</span>
-                    </Template>
-                </RadzenDataGridColumn>
-
-                <RadzenDataGridColumn Property="CurrentStock" Title="Saldo Atual" Width="120px">
-                    <Template Context="item">
-                        <span style="font-weight: 700; font-size: 1.05rem; color: @(item.IsBelowMinimum ? "#dc2626" : "#16a34a");">
-                            @item.CurrentStock.ToString("N0") @item.Unit
-                        </span>
-                    </Template>
-                </RadzenDataGridColumn>
-
-                <RadzenDataGridColumn Property="MinimumStock" Title="Estoque Mínimo" Width="120px">
-                    <Template Context="item">
-                        <span style="color: #64748b;">@item.MinimumStock.ToString("N0") @item.Unit</span>
-                    </Template>
-                </RadzenDataGridColumn>
-
-                <RadzenDataGridColumn Property="NextExpiryDate" Title="Próxima Validade" Width="160px">
-                    <Template Context="item">
-                        @if (item.NextExpiryDate.HasValue)
-                        {
-                            @if (item.ExpiryStatus == ExpiryStatus.Vencido)
+            <RadzenDataGrid Data="@criticalItems" TItem="PosicaoEstoqueDto" AllowPaging="true" PageSize="6"
+                            EmptyText="Nenhum item crítico no momento!">
+                <Columns>
+                    <RadzenDataGridColumn Property="ProductName" Title="Alimento / Produto" Width="280px">
+                        <Template Context="item">
+                            <RadzenText TextStyle="TextStyle.Body1" Style="font-weight: 600;">@item.ProductName</RadzenText>
+                            @if (item.IsUniqueItem)
                             {
-                                <RadzenBadge BadgeStyle="BadgeStyle.Danger" Text="@($"{item.NextExpiryDate:dd/MM/yyyy} (VENCIDO)")" />
+                                <RadzenBadge BadgeStyle="BadgeStyle.Warning" Text="ITEM ÚNICO" IsPill="true" Style="margin-left: 6px;" />
                             }
-                            else if (item.ExpiryStatus == ExpiryStatus.Critico || item.ExpiryStatus == ExpiryStatus.ProximoVencimento)
+                        </Template>
+                    </RadzenDataGridColumn>
+
+                    <RadzenDataGridColumn Property="Brand" Title="Marca" Width="140px">
+                        <Template Context="item">
+                            @(string.IsNullOrEmpty(item.Brand) ? "-" : item.Brand)
+                        </Template>
+                    </RadzenDataGridColumn>
+
+                    <RadzenDataGridColumn Property="CurrentStock" Title="Saldo Atual" Width="120px">
+                        <Template Context="item">
+                            <RadzenText TextStyle="TextStyle.Body1"
+                                        Style="@($"font-weight: 700; color: var(--rz-{(item.IsBelowMinimum ? "danger" : "success")});")">
+                                @item.CurrentStock.ToString("N0") @item.Unit
+                            </RadzenText>
+                        </Template>
+                    </RadzenDataGridColumn>
+
+                    <RadzenDataGridColumn Property="MinimumStock" Title="Estoque Mínimo" Width="120px">
+                        <Template Context="item">
+                            <span class="rz-color-secondary">@item.MinimumStock.ToString("N0") @item.Unit</span>
+                        </Template>
+                    </RadzenDataGridColumn>
+
+                    <RadzenDataGridColumn Property="NextExpiryDate" Title="Próxima Validade" Width="160px">
+                        <Template Context="item">
+                            @if (item.NextExpiryDate.HasValue)
                             {
-                                <RadzenBadge BadgeStyle="BadgeStyle.Warning" Text="@($"{item.NextExpiryDate:dd/MM/yyyy} (VENCE LOGO)")" />
+                                @if (item.ExpiryStatus == ExpiryStatus.Vencido)
+                                {
+                                    <RadzenBadge BadgeStyle="BadgeStyle.Danger" Text="@($"{item.NextExpiryDate:dd/MM/yyyy} (VENCIDO)")" />
+                                }
+                                else if (item.ExpiryStatus == ExpiryStatus.Critico || item.ExpiryStatus == ExpiryStatus.ProximoVencimento)
+                                {
+                                    <RadzenBadge BadgeStyle="BadgeStyle.Warning" Text="@($"{item.NextExpiryDate:dd/MM/yyyy} (VENCE LOGO)")" />
+                                }
+                                else
+                                {
+                                    <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="@($"{item.NextExpiryDate:dd/MM/yyyy}")" />
+                                }
                             }
                             else
                             {
-                                <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="@($"{item.NextExpiryDate:dd/MM/yyyy}")" />
+                                <span class="rz-color-secondary">Não informada</span>
                             }
-                        }
-                        else
-                        {
-                            <span style="color: #94a3b8;">Não informada</span>
-                        }
-                    </Template>
-                </RadzenDataGridColumn>
+                        </Template>
+                    </RadzenDataGridColumn>
 
-                <RadzenDataGridColumn Title="Ação" Width="130px" Sortable="false">
-                    <Template Context="item">
-                        <RadzenButton Text="Dar Saída" Icon="output" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.ExtraSmall"
-                                      Click="@(() => Navigation.NavigateTo($"saidas?productId={item.ProductId}"))" />
-                    </Template>
-                </RadzenDataGridColumn>
-            </Columns>
-        </RadzenDataGrid>
-    </RadzenCard>
-}
+                    <RadzenDataGridColumn Title="Ação" Width="130px" Sortable="false">
+                        <Template Context="item">
+                            <RadzenButton Text="Dar Saída" Icon="output" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.ExtraSmall"
+                                          Click="@(() => Navigation.NavigateTo($"saidas?productId={item.ProductId}"))" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenCard>
+    }
+</RadzenStack>
 
 @code {
     private bool loading = true;
     private DashboardKpisDto? kpis;
     private List<PosicaoEstoqueDto> criticalItems = new();
+    private IDisposable? _tenantChangedRegistration;
 
     protected override async Task OnInitializedAsync()
     {
+        _tenantChangedRegistration = TenantSession.RegisterOnTenantChanged(() => InvokeAsync(LoadDashboardDataAsync));
         await LoadDashboardDataAsync();
+    }
+
+    public void Dispose()
+    {
+        _tenantChangedRegistration?.Dispose();
     }
 
     private async Task LoadDashboardDataAsync()
     {
+        if (!TenantSession.SelectedTenantId.HasValue)
+        {
+            kpis = null;
+            criticalItems = new();
+            loading = false;
+            return;
+        }
+
         loading = true;
         try
         {
@@ -223,6 +226,12 @@ else if (kpis != null)
                 .Where(p => p.IsBelowMinimum || p.ExpiryStatus == ExpiryStatus.ProximoVencimento || p.ExpiryStatus == ExpiryStatus.Critico || p.ExpiryStatus == ExpiryStatus.Vencido)
                 .Take(10)
                 .ToList();
+        }
+        catch
+        {
+            kpis = null;
+            criticalItems = new();
+            throw;
         }
         finally
         {

@@ -23,6 +23,7 @@ services:
       dockerfile: Dockerfile.migrator
     environment:
       ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=${POSTGRES_DB:-gestoque};Username=${POSTGRES_USER:-gestoque};Password=${POSTGRES_PASSWORD:-gestoque_dev_password}
+      ExcelImport__FilePath: /app/29_07_2026 planilha atualizada.xlsx
     depends_on:
       db:
         condition: service_healthy

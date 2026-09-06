@@ -53,17 +53,22 @@ public record GetSuppliersQuery : IRequest<List<SupplierDto>>;
 public class GetSuppliersQueryHandler : IRequestHandler<GetSuppliersQuery, List<SupplierDto>>
 {
     private readonly IGestoqueDbContext _context;
+    private readonly ICurrentTenantService _currentTenant;
 
-    public GetSuppliersQueryHandler(IGestoqueDbContext context)
+    public GetSuppliersQueryHandler(IGestoqueDbContext context, ICurrentTenantService currentTenant)
     {
         _context = context;
+        _currentTenant = currentTenant;
     }
 
     public async Task<List<SupplierDto>> Handle(GetSuppliersQuery request, CancellationToken cancellationToken)
     {
+        var tenantId = _currentTenant.TenantId
+            ?? throw new InvalidOperationException("Nenhuma empresa ativa selecionada.");
+
         return await _context.Suppliers
             .AsNoTracking()
-            .Where(s => s.IsActive)
+            .Where(s => s.IsActive && s.TenantId == tenantId)
             .OrderBy(s => s.Name)
             .Select(s => new SupplierDto(
                 s.Id,

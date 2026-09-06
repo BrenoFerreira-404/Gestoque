@@ -122,6 +122,7 @@ else
     private MovementType? selectedType;
     private DateTime? startDate = DateTime.Today.AddDays(-30);
     private DateTime? endDate = DateTime.Today.AddDays(1);
+    private IDisposable? _tenantChangedRegistration;
 
     private record TipoItem(MovementType? Value, string Text);
     private List<TipoItem> tiposMovimento = new()
@@ -134,11 +135,23 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        _tenantChangedRegistration = TenantSession.RegisterOnTenantChanged(() => InvokeAsync(LoadMovementsAsync));
         await LoadMovementsAsync();
+    }
+
+    public void Dispose()
+    {
+        _tenantChangedRegistration?.Dispose();
     }
 
     private async Task LoadMovementsAsync()
     {
+        if (!TenantSession.SelectedTenantId.HasValue)
+        {
+            movements = new();
+            return;
+        }
+
         loading = true;
         try
         {

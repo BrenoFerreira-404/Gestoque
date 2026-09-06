@@ -36,12 +36,23 @@ if (!string.IsNullOrWhiteSpace(excelFilePath))
         .OrderBy(t => t.CreatedAt)
         .FirstAsync();
 
-    var importer = scope.ServiceProvider.GetRequiredService<ExcelImporterService>();
-    var result = await importer.ImportFromExcelAsync(excelFilePath, tenant.Id);
+    var hasProducts = await context.Products
+        .IgnoreQueryFilters()
+        .AnyAsync(p => p.TenantId == tenant.Id);
 
-    Console.WriteLine(
-        $"Importação Excel concluída: {result.products} produtos, " +
-        $"{result.suppliers} fornecedores e {result.movements} movimentos.");
+    if (!hasProducts)
+    {
+        var importer = scope.ServiceProvider.GetRequiredService<ExcelImporterService>();
+        var result = await importer.ImportFromExcelAsync(excelFilePath, tenant.Id);
+
+        Console.WriteLine(
+            $"Importação Excel concluída: {result.products} produtos, " +
+            $"{result.suppliers} fornecedores e {result.movements} movimentos.");
+    }
+    else
+    {
+        Console.WriteLine("Importação Excel ignorada — produtos já existem no banco.");
+    }
 }
 
 Console.WriteLine("Banco de dados migrado e seed inicial concluído.");

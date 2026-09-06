@@ -31,5 +31,33 @@ public class TenantSessionState
         SelectedTenantName = tenantName;
         OnTenantChanged?.Invoke();
     }
+
+    public IDisposable RegisterOnTenantChanged(Action callback)
+    {
+        OnTenantChanged += callback;
+        return new Unsubscriber(this, callback);
+    }
+
+    private sealed class Unsubscriber : IDisposable
+    {
+        private readonly TenantSessionState _parent;
+        private readonly Action _callback;
+        private bool _disposed;
+
+        public Unsubscriber(TenantSessionState parent, Action callback)
+        {
+            _parent = parent;
+            _callback = callback;
+        }
+
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                _parent.OnTenantChanged -= _callback;
+                _disposed = true;
+            }
+        }
+    }
 }
 

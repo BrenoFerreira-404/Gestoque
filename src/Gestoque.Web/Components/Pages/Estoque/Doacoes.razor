@@ -114,6 +114,7 @@
 @code {
     private List<PosicaoEstoqueDto> products = new();
     private List<StockMovementDto> donationMovements = new();
+    private IDisposable? _tenantChangedRegistration;
 
     private string donorName = string.Empty;
     private string? donorContact;
@@ -126,12 +127,25 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _tenantChangedRegistration = TenantSession.RegisterOnTenantChanged(() => InvokeAsync(LoadDataAsync));
         await LoadDataAsync();
+    }
+
+    public void Dispose()
+    {
+        _tenantChangedRegistration?.Dispose();
     }
 
     private async Task LoadDataAsync()
     {
-        products = await Mediator.Send(new GetPosicaoEstoqueQuery());
+        if (!TenantSession.SelectedTenantId.HasValue)
+        {
+            products = new();
+            donationMovements = new();
+            return;
+        }
+
+        products = await Mediator.Send(new GetAllProductsQuery());
         var allMovements = await Mediator.Send(new GetMovimentacoesQuery(Type: MovementType.Entrada));
         donationMovements = allMovements
             .Where(m => m.MovementReason == MovementReason.DoacaoRecebida)

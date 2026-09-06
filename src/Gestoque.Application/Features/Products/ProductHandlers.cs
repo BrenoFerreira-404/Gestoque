@@ -70,25 +70,32 @@ public record GetPosicaoEstoqueQuery(
 public class GetPosicaoEstoqueQueryHandler : IRequestHandler<GetPosicaoEstoqueQuery, List<PosicaoEstoqueDto>>
 {
     private readonly IGestoqueDbContext _context;
+    private readonly ICurrentTenantService _currentTenant;
 
-    public GetPosicaoEstoqueQueryHandler(IGestoqueDbContext context)
+    public GetPosicaoEstoqueQueryHandler(IGestoqueDbContext context, ICurrentTenantService currentTenant)
     {
         _context = context;
+        _currentTenant = currentTenant;
     }
 
     public async Task<List<PosicaoEstoqueDto>> Handle(GetPosicaoEstoqueQuery request, CancellationToken cancellationToken)
     {
+        var tenantId = _currentTenant.TenantId
+            ?? throw new InvalidOperationException("Nenhuma empresa ativa selecionada.");
+
         var query = _context.Products
             .AsNoTracking()
             .Include(p => p.Category)
             .Include(p => p.Batches.Where(b => b.CurrentQuantity > 0))
-            .Where(p => p.IsActive);
+            .Where(p => p.IsActive && p.TenantId == tenantId)
+            .Where(p => p.Batches.Any(b => b.CurrentQuantity > 0) || p.StockMovements.Any());
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
             var search = request.SearchTerm.Trim().ToLower();
-            query = query.Where(p => p.Name.ToLower().Contains(search) 
-                                  || (p.Brand != null && p.Brand.ToLower().Contains(search)));
+            query = query.Where(p =>
+                p.Name.ToLower().Contains(search)
+                || (p.Brand != null && p.Brand.ToLower().Contains(search)));
         }
 
         if (request.CategoryId.HasValue)
@@ -100,7 +107,6 @@ public class GetPosicaoEstoqueQueryHandler : IRequestHandler<GetPosicaoEstoqueQu
 
         var result = products.Select(p =>
         {
-            // Find batch with closest expiry date
             var nextBatch = p.Batches
                 .Where(b => b.ExpiryDate.HasValue)
                 .OrderBy(b => b.ExpiryDate)
@@ -139,6 +145,78 @@ public class GetPosicaoEstoqueQueryHandler : IRequestHandler<GetPosicaoEstoqueQu
         }
 
         return result.OrderBy(r => r.ProductName).ToList();
+    }
+}
+
+public record GetAllProductsQuery(
+    string? SearchTerm = null,
+    Guid? CategoryId = null
+) : IRequest<List<PosicaoEstoqueDto>>;
+
+public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, List<PosicaoEstoqueDto>>
+{
+    private readonly IGestoqueDbContext _context;
+    private readonly ICurrentTenantService _currentTenant;
+
+    public GetAllProductsQueryHandler(IGestoqueDbContext context, ICurrentTenantService currentTenant)
+    {
+        _context = context;
+        _currentTenant = currentTenant;
+    }
+
+    public async Task<List<PosicaoEstoqueDto>> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
+    {
+        var tenantId = _currentTenant.TenantId
+            ?? throw new InvalidOperationException("Nenhuma empresa ativa selecionada.");
+
+        var query = _context.Products
+            .AsNoTracking()
+            .Include(p => p.Category)
+            .Include(p => p.Batches.Where(b => b.CurrentQuantity > 0))
+            .Where(p => p.IsActive && p.TenantId == tenantId);
+
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            var search = request.SearchTerm.Trim().ToLower();
+            query = query.Where(p => p.Name.ToLower().Contains(search) 
+                                  || (p.Brand != null && p.Brand.ToLower().Contains(search)));
+        }
+
+        if (request.CategoryId.HasValue)
+        {
+            query = query.Where(p => p.CategoryId == request.CategoryId.Value);
+        }
+
+        var products = await query.ToListAsync(cancellationToken);
+
+        return products.Select(p =>
+        {
+            var nextBatch = p.Batches
+                .Where(b => b.ExpiryDate.HasValue)
+                .OrderBy(b => b.ExpiryDate)
+                .FirstOrDefault();
+
+            var nextExpiry = nextBatch?.ExpiryDate;
+            var status = nextBatch?.GetExpiryStatus() ?? ExpiryStatus.Normal;
+
+            return new PosicaoEstoqueDto(
+                ProductId: p.Id,
+                ProductName: p.Name,
+                Description: p.Description,
+                CategoryName: p.Category?.Name,
+                Unit: p.Unit,
+                UnitDescription: p.UnitDescription,
+                Brand: p.Brand,
+                CurrentStock: p.CurrentStock,
+                MinimumStock: p.MinimumStock,
+                IsBelowMinimum: p.IsBelowMinimumStock,
+                IsUniqueItem: p.IsUniqueItem,
+                NextExpiryDate: nextExpiry,
+                ExpiryStatus: status,
+                ActiveBatchesCount: p.Batches.Count,
+                Notes: p.Notes
+            );
+        }).OrderBy(r => r.ProductName).ToList();
     }
 }
 

@@ -208,19 +208,32 @@ else
     private string searchTerm = string.Empty;
     private bool onlyBelowMinimum = false;
     private bool onlyExpiringSoon = false;
+    private IDisposable? _tenantChangedRegistration;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _tenantChangedRegistration = TenantSession.RegisterOnTenantChanged(() => InvokeAsync(LoadStockAsync));
+        await LoadStockAsync();
+    }
+
+    public void Dispose()
+    {
+        _tenantChangedRegistration?.Dispose();
+    }
 
     // Modal de ajuste
     private PosicaoEstoqueDto? selectedItemParaAjuste;
     private decimal novoSaldoContado;
     private string justificativaAjuste = string.Empty;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadStockAsync();
-    }
-
     private async Task LoadStockAsync()
     {
+        if (!TenantSession.SelectedTenantId.HasValue)
+        {
+            items = new();
+            return;
+        }
+
         loading = true;
         try
         {

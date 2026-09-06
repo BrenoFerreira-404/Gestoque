@@ -51,6 +51,10 @@ public class ExcelImportTests
         Assert.True(result.suppliers >= 5, $"Esperava pelo menos 5 fornecedores importados, importou {result.suppliers}");
         Assert.True(result.movements > 0, "Esperava lotes e movimentações de saldo inicial.");
 
+        var totalSaidas = await context.StockMovements
+            .CountAsync(m => m.TenantId == tenantId && m.MovementType == Gestoque.Domain.Enums.MovementType.Saida);
+        Assert.True(totalSaidas > 0, $"Esperava saídas importadas da aba SAÍDA, importou {totalSaidas}");
+
         // Verificar persistência no banco
         var totalProducts = await context.Products.CountAsync();
         var totalSuppliers = await context.Suppliers.CountAsync();

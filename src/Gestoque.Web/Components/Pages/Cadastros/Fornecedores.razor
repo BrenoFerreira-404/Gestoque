@@ -107,6 +107,18 @@ else
     private bool loading = true;
     private List<SupplierDto> suppliers = new();
     private bool showModal = false;
+    private IDisposable? _tenantChangedRegistration;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _tenantChangedRegistration = TenantSession.RegisterOnTenantChanged(() => InvokeAsync(LoadSuppliersAsync));
+        await LoadSuppliersAsync();
+    }
+
+    public void Dispose()
+    {
+        _tenantChangedRegistration?.Dispose();
+    }
 
     private string newName = string.Empty;
     private string? newCnpj;
@@ -114,13 +126,14 @@ else
     private string? newEmail;
     private string? newContact;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadSuppliersAsync();
-    }
-
     private async Task LoadSuppliersAsync()
     {
+        if (!TenantSession.SelectedTenantId.HasValue)
+        {
+            suppliers = new();
+            return;
+        }
+
         loading = true;
         try
         {

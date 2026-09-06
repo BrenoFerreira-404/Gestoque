@@ -6,11 +6,11 @@
 
 <PageTitle>Empresas - Gestoque Pro</PageTitle>
 
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.75rem;">
     <div>
-        <h2 style="font-weight: 700; color: #1e293b; margin: 0;">Gestão Multi-Empresa</h2>
-        <p style="color: #64748b; margin: 0; font-size: 0.95rem;">
-            Área do Administrador Geral | Cadastre empresas e gerencie estoques isolados sem misturar dados
+        <h2 style="font-weight: 700; color: #111827; margin: 0 0 0.25rem 0; font-size: 1.35rem;">Gestão Multi-Empresa</h2>
+        <p style="color: #6b7280; margin: 0; font-size: 0.9rem;">
+            Cadastre empresas e gerencie estoques isolados sem misturar dados
         </p>
     </div>
 
@@ -23,33 +23,48 @@
 }
 else
 {
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.25rem;">
         @foreach (var tenant in tenants)
         {
             var isCurrent = tenant.Id == TenantSession.SelectedTenantId;
 
-            <RadzenCard Style="@($"background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 2px solid {(isCurrent ? "#0284c7" : "#e2e8f0")};")">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
-                    <div>
-                        <h4 style="margin: 0; font-weight: 700; color: #0f172a;">@tenant.NomeFantasia</h4>
-                        <span style="font-size: 0.8rem; color: #64748b;">@tenant.RazaoSocial</span>
+            <RadzenCard Style="@($"background: #ffffff; border-radius: 12px; padding: 1.5rem; border: 1px solid {(isCurrent ? "#d1d5db" : "#e5e7eb")}; box-shadow: 0 1px 2px rgba(0,0,0,0.03);")">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                            <RadzenIcon Icon="business" Style="font-size: 1.1rem; color: #6b7280;" />
+                            <h4 style="margin: 0; font-weight: 700; color: #111827; font-size: 1.05rem;">@tenant.NomeFantasia</h4>
+                        </div>
+                        <p style="margin: 0; font-size: 0.85rem; color: #6b7280; padding-left: 1.5rem;">@tenant.RazaoSocial</p>
                     </div>
                     @if (isCurrent)
                     {
-                        <RadzenBadge BadgeStyle="BadgeStyle.Info" Text="EMPRESA ATIVA" IsPill="true" />
+                        <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="ATIVA" IsPill="true" Style="background-color: #f3f4f6; color: #374151; border: 1px solid #d1d5db; font-weight: 600;" />
                     }
                 </div>
 
-                <div style="font-size: 0.85rem; color: #475569; display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1.25rem;">
-                    <div><RadzenIcon Icon="badge" Style="font-size: 1rem; color: #64748b; vertical-align: middle; margin-right: 4px;" /> CNPJ: <strong>@(string.IsNullOrEmpty(tenant.Cnpj) ? "-" : tenant.Cnpj)</strong></div>
-                    <div><RadzenIcon Icon="email" Style="font-size: 1rem; color: #64748b; vertical-align: middle; margin-right: 4px;" /> E-mail: <strong>@(string.IsNullOrEmpty(tenant.Email) ? "-" : tenant.Email)</strong></div>
-                    <div><RadzenIcon Icon="phone" Style="font-size: 1rem; color: #64748b; vertical-align: middle; margin-right: 4px;" /> Telefone: <strong>@(string.IsNullOrEmpty(tenant.Telefone) ? "-" : tenant.Telefone)</strong></div>
+                <div style="background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 10px; padding: 0.85rem 1rem; margin-bottom: 1.25rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #4b5563;">
+                        <RadzenIcon Icon="badge" Style="font-size: 0.95rem; color: #9ca3af; width: 1rem;" />
+                        <span style="color: #6b7280; min-width: 3.5rem;">CNPJ</span>
+                        <strong>@(string.IsNullOrEmpty(tenant.Cnpj) ? "-" : tenant.Cnpj)</strong>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #4b5563;">
+                        <RadzenIcon Icon="email" Style="font-size: 0.95rem; color: #9ca3af; width: 1rem;" />
+                        <span style="color: #6b7280; min-width: 3.5rem;">E-mail</span>
+                        <strong>@(string.IsNullOrEmpty(tenant.Email) ? "-" : tenant.Email)</strong>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #4b5563;">
+                        <RadzenIcon Icon="phone" Style="font-size: 0.95rem; color: #9ca3af; width: 1rem;" />
+                        <span style="color: #6b7280; min-width: 3.5rem;">Telefone</span>
+                        <strong>@(string.IsNullOrEmpty(tenant.Telefone) ? "-" : tenant.Telefone)</strong>
+                    </div>
                 </div>
 
                 <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
                     @if (!isCurrent)
                     {
-                        <RadzenButton Text="Acessar Estoque" Icon="login" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small"
+                        <RadzenButton Text="Acessar Estoque" Icon="login" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
                                       Click="@(() => SelecionarEmpresa(tenant))" />
                     }
                     else
@@ -66,38 +81,38 @@ else
 <!-- MODAL CADASTRAR EMPRESA -->
 @if (showModal)
 {
-    <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;">
-        <RadzenCard Style="background: white; border-radius: 12px; width: 480px; max-width: 95vw; padding: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-            <h4 style="margin: 0 0 1.25rem 0; font-weight: 700; color: #0f172a;">Cadastrar Nova Empresa (Tenant)</h4>
+    <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <RadzenCard Style="background: #ffffff; border-radius: 14px; width: 480px; max-width: 95vw; padding: 1.75rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);">
+            <h4 style="margin: 0 0 1.5rem 0; font-weight: 700; color: #111827; font-size: 1.1rem;">Cadastrar Nova Empresa</h4>
 
-            <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: flex; flex-direction: column; gap: 1.1rem;">
                 <div>
-                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Nome Fantasia *</label>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 0.35rem;">Nome Fantasia *</label>
                     <RadzenTextBox @bind-Value="@newNomeFantasia" Placeholder="Ex: Unidade Centro..." Style="width: 100%;" />
                 </div>
 
                 <div>
-                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Razão Social *</label>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 0.35rem;">Razão Social *</label>
                     <RadzenTextBox @bind-Value="@newRazaoSocial" Placeholder="Ex: Empresa de Alimentos Ltda..." Style="width: 100%;" />
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <div>
-                        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">CNPJ</label>
+                        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 0.35rem;">CNPJ</label>
                         <RadzenTextBox @bind-Value="@newCnpj" Placeholder="00.000.000/0001-00" Style="width: 100%;" />
                     </div>
                     <div>
-                        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">Telefone</label>
+                        <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 0.35rem;">Telefone</label>
                         <RadzenTextBox @bind-Value="@newTelefone" Placeholder="(11) 99999-9999" Style="width: 100%;" />
                     </div>
                 </div>
 
                 <div>
-                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.25rem;">E-mail Corporativo</label>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 0.35rem;">E-mail Corporativo</label>
                     <RadzenTextBox @bind-Value="@newEmail" Placeholder="contato@empresa.com.br" Style="width: 100%;" />
                 </div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.75rem;">
                     <RadzenButton Text="Cancelar" ButtonStyle="ButtonStyle.Light" Click="@(() => showModal = false)" />
                     <RadzenButton Text="Criar Empresa" ButtonStyle="ButtonStyle.Primary" Click="@SalvarEmpresaAsync" />
                 </div>
@@ -139,7 +154,7 @@ else
     {
         TenantSession.SetTenant(tenant);
         NotificationService.Notify(NotificationSeverity.Info, "Empresa Alterada", $"Você agora está gerenciando: {tenant.NomeFantasia}");
-        Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+        Navigation.NavigateTo("/produtos");
     }
 
     private async Task SalvarEmpresaAsync()

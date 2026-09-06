@@ -1,4 +1,5 @@
 @page "/importar-excel"
+@using Microsoft.AspNetCore.Components.Forms
 @using Gestoque.Infrastructure.Services
 @inject ExcelImporterService ExcelImporter
 @inject TenantSessionState TenantSession
@@ -7,85 +8,103 @@
 
 <PageTitle>Importar Planilha Excel - Gestoque Pro</PageTitle>
 
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-    <div>
-        <h2 style="font-weight: 700; color: #1e293b; margin: 0;">Migração e Importação da Planilha Excel</h2>
-        <p style="color: #64748b; margin: 0; font-size: 0.95rem;">
-            Importe os 169 alimentos, estoques mínimos, validades e histórico de fornecedores diretamente para o sistema
-        </p>
-    </div>
-</div>
+<RadzenStack Gap="1.5rem" Style="max-width: 800px;">
+    <RadzenStack Gap="0.25rem">
+        <RadzenText TextStyle="TextStyle.H4" TagName="TagName.H2" Style="margin: 0;">Migração e Importação da Planilha Excel</RadzenText>
+        <RadzenText TextStyle="TextStyle.Subtitle2">
+            Envie uma planilha compatível com as abas ESTOQUE, ENTRADA ENTREGA e DOAÇÃO.
+        </RadzenText>
+    </RadzenStack>
 
-<div style="max-width: 800px;">
-    <RadzenCard Style="background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 1.5rem;">
-        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
-            <div style="background: #dcfce7; padding: 16px; border-radius: 12px;">
-                <RadzenIcon Icon="table_view" Style="color: #16a34a; font-size: 2.5rem;" />
-            </div>
-            <div>
-                <h4 style="margin: 0; font-weight: 700; color: #0f172a;">Planilha Oficial Detectada</h4>
-                <p style="margin: 0.25rem 0 0 0; color: #64748b; font-size: 0.9rem;">
-                    Arquivo: <strong>29_07_2026 planilha atualizada.xlsx</strong> (na raiz do projeto)
-                </p>
-            </div>
-        </div>
+    <RadzenCard>
+        <RadzenStack Gap="1.5rem">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
+                <RadzenIcon Icon="table_view" Style="font-size: 2.5rem; color: var(--rz-primary);" />
+                <RadzenStack Gap="0.25rem">
+                    <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H4" Style="margin: 0;">Importar Planilha</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2">Selecione um arquivo <strong>.xlsx</strong> para iniciar a importação.</RadzenText>
+                </RadzenStack>
+            </RadzenStack>
 
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem;">
-            <h5 style="margin: 0 0 0.75rem 0; font-weight: 600; color: #1e293b; font-size: 0.95rem;">O que será importado:</h5>
-            <ul style="margin: 0; padding-left: 1.25rem; color: #475569; font-size: 0.9rem; display: flex; flex-direction: column; gap: 0.35rem;">
-                <li><strong>Aba ESTOQUE:</strong> Criação de todos os produtos alimentícios, marcas, embalagens, ponto de pedido (estoque mínimo) e saldo atual com lote de migração.</li>
-                <li><strong>Aba ENTRADA ENTREGA:</strong> Cadastro automático de fornecedores (Vinaque, Xavier, MSX, Imperial, etc.) e histórico de recebimento.</li>
-                <li><strong>Aba DOAÇÃO:</strong> Rastreabilidade de alimentos doados.</li>
-            </ul>
-        </div>
+            <RadzenFieldset Text="O que será importado">
+                <RadzenStack Gap="0.35rem">
+                    <RadzenText TextStyle="TextStyle.Body2"><strong>Aba ESTOQUE:</strong> Produtos, marcas, saldos e lotes de migração.</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2"><strong>Aba ENTRADA ENTREGA:</strong> Fornecedores e histórico de recebimento.</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2"><strong>Aba SAÍDA:</strong> Histórico de saídas diárias por consumo/perdas.</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2"><strong>Aba DOAÇÃO:</strong> Rastreabilidade de alimentos doados.</RadzenText>
+                </RadzenStack>
+            </RadzenFieldset>
 
-        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
-            <RadzenIcon Icon="business" Style="color: #0284c7; font-size: 1.5rem;" />
-            <div>
-                <span style="font-size: 0.85rem; color: #1e40af;">Empresa de Destino da Importação:</span>
-                <div style="font-weight: 700; color: #1e3a8a; font-size: 1rem;">@TenantSession.SelectedTenantName</div>
-            </div>
-        </div>
+            <RadzenAlert AlertStyle="AlertStyle.Info" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="false">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.75rem">
+                    <RadzenIcon Icon="business" />
+                    <RadzenStack Gap="0">
+                        <RadzenText TextStyle="TextStyle.Caption">Empresa de Destino da Importação</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1" Style="font-weight: 700;">@TenantSession.SelectedTenantName</RadzenText>
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenAlert>
 
-        @if (isImporting)
-        {
-            <div style="text-align: center; padding: 1.5rem 0;">
-                <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Style="margin-bottom: 1rem;" />
-                <span style="color: #64748b; font-size: 0.9rem;">Importando dados e criando lotes com validade no banco... Aguarde um momento.</span>
-            </div>
-        }
-        else if (importResult != null)
-        {
-            <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem;">
-                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                    <RadzenIcon Icon="check_circle" Style="color: #10b981; font-size: 1.5rem;" />
-                    <strong style="color: #065f46; font-size: 1.05rem;">Importação Concluída com Sucesso!</strong>
-                </div>
-                <div style="font-size: 0.9rem; color: #047857;">
-                    • <strong>@importResult.Value.products</strong> produtos cadastrados/atualizados.<br />
-                    • <strong>@importResult.Value.suppliers</strong> fornecedores identificados e cadastrados.<br />
-                    • <strong>@importResult.Value.movements</strong> lotes com saldos e validades importados.
-                </div>
-            </div>
+            <RadzenStack Gap="1rem">
+                <InputFile id="excelFile" OnChange="OnFileSelected" accept=".xlsx,.xls" />
 
-            <div style="display: flex; gap: 0.75rem;">
-                <RadzenButton Text="Visualizar Posição do Estoque" Icon="table_chart" ButtonStyle="ButtonStyle.Success"
-                              Click="@(() => Navigation.NavigateTo("estoque"))" />
-                <RadzenButton Text="Ir para o Dashboard" Icon="dashboard" ButtonStyle="ButtonStyle.Primary"
-                              Click="@(() => Navigation.NavigateTo(""))" />
-            </div>
-        }
-        else
-        {
-            <RadzenButton Text="Iniciar Importação Agora" Icon="cloud_upload" ButtonStyle="ButtonStyle.Success"
-                          Click="@ExecutarImportacaoAsync" Style="height: 48px; font-size: 1rem; font-weight: 600; width: 100%;" />
-        }
+                @if (!string.IsNullOrEmpty(fileName))
+                {
+                    <RadzenText TextStyle="TextStyle.Body2">Arquivo selecionado: <strong>@fileName</strong></RadzenText>
+                }
+
+                <RadzenButton Text="Iniciar Importação Agora" Icon="cloud_upload" ButtonStyle="ButtonStyle.Success"
+                              Click="@ExecutarImportacaoAsync" Disabled="@(!HasFile || isImporting)"
+                              Style="height: 48px; width: 100%;" />
+            </RadzenStack>
+
+            @if (isImporting)
+            {
+                <RadzenStack AlignItems="AlignItems.Center" Gap="1rem" Style="padding: 1rem 0;">
+                    <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Style="width: 100%;" />
+                    <RadzenText TextStyle="TextStyle.Body2" class="rz-color-secondary">
+                        Importando dados e criando lotes com validade no banco... Aguarde um momento.
+                    </RadzenText>
+                </RadzenStack>
+            }
+            else if (importResult != null)
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Success" Variant="Variant.Flat" Shade="Shade.Lighter" AllowClose="false">
+                    <RadzenStack Gap="1rem">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                            <RadzenIcon Icon="check_circle" />
+                            <RadzenText TextStyle="TextStyle.Body1" Style="font-weight: 700;">Importação Concluída com Sucesso!</RadzenText>
+                        </RadzenStack>
+                        <RadzenText TextStyle="TextStyle.Body2">
+                            • <strong>@importResult.Value.products</strong> produtos cadastrados/atualizados.<br />
+                            • <strong>@importResult.Value.suppliers</strong> fornecedores identificados e cadastrados.<br />
+                            • <strong>@importResult.Value.movements</strong> lotes com saldos e validades importados.
+                        </RadzenText>
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem">
+                            <RadzenButton Text="Visualizar Posição do Estoque" Icon="table_chart" ButtonStyle="ButtonStyle.Success"
+                                          Click="@(() => Navigation.NavigateTo("estoque"))" />
+                            <RadzenButton Text="Ir para o Dashboard" Icon="dashboard" ButtonStyle="ButtonStyle.Primary"
+                                          Click="@(() => Navigation.NavigateTo(""))" />
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenAlert>
+            }
+        </RadzenStack>
     </RadzenCard>
-</div>
+</RadzenStack>
 
 @code {
     private bool isImporting = false;
     private (int products, int suppliers, int movements)? importResult;
+    private IBrowserFile? selectedFile;
+    private string? fileName;
+    private bool HasFile => selectedFile is not null;
+
+    private void OnFileSelected(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+        fileName = selectedFile.Name;
+    }
 
     private async Task ExecutarImportacaoAsync()
     {
@@ -95,23 +114,26 @@
             return;
         }
 
+        if (selectedFile is null)
+        {
+            NotificationService.Notify(NotificationSeverity.Warning, "Atenção", "Selecione um arquivo .xlsx para importar.");
+            return;
+        }
+
         isImporting = true;
         importResult = null;
 
+        var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".xlsx");
+
         try
         {
-            // Caminho da planilha na raiz do projeto
-            var excelPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "29_07_2026 planilha atualizada.xlsx");
-            if (!File.Exists(excelPath))
+            await using (var uploadStream = selectedFile.OpenReadStream(maxAllowedSize: 1024L * 1024L * 1024L))
+            await using (var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, useAsync: true))
             {
-                excelPath = Path.Combine(Directory.GetCurrentDirectory(), "29_07_2026 planilha atualizada.xlsx");
-            }
-            if (!File.Exists(excelPath))
-            {
-                excelPath = @"c:\Projetos_Oficial\Gestoque\29_07_2026 planilha atualizada.xlsx";
+                await uploadStream.CopyToAsync(fileStream);
             }
 
-            importResult = await ExcelImporter.ImportFromExcelAsync(excelPath, TenantSession.SelectedTenantId.Value);
+            importResult = await ExcelImporter.ImportFromExcelAsync(tempPath, TenantSession.SelectedTenantId.Value);
 
             NotificationService.Notify(NotificationSeverity.Success, "Sucesso", "Importação concluída com sucesso!");
         }
@@ -121,8 +143,11 @@
         }
         finally
         {
+            if (File.Exists(tempPath))
+            {
+                try { File.Delete(tempPath); } catch { /* ignorar falha ao limpar temp */ }
+            }
             isImporting = false;
         }
     }
 }
-

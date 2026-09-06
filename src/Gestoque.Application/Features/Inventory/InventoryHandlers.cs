@@ -39,23 +39,31 @@ public class RegistrarEntradaCommandHandler : IRequestHandler<RegistrarEntradaCo
         if (request.Quantity <= 0)
             throw new ArgumentException("A quantidade deve ser maior que zero.");
 
-        var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == request.ProductId, cancellationToken)
+        var product = await _context.Products
+            .FirstOrDefaultAsync(p => p.Id == request.ProductId && p.TenantId == tenantId, cancellationToken)
             ?? throw new KeyNotFoundException("Produto não encontrado.");
 
-        // Create or find Batch
-        var batchNumber = string.IsNullOrWhiteSpace(request.BatchNumber) 
-            ? $"LOTE-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..4].ToUpper()}" 
+        var batchNumber = string.IsNullOrWhiteSpace(request.BatchNumber)
+            ? $"LOTE-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..4].ToUpper()}"
             : request.BatchNumber.Trim();
+
+        var movementDate = request.MovementDate.Kind == DateTimeKind.Utc
+            ? request.MovementDate
+            : DateTime.SpecifyKind(request.MovementDate, DateTimeKind.Utc);
 
         var batch = new Batch
         {
             TenantId = tenantId,
             ProductId = product.Id,
             BatchNumber = batchNumber,
-            ExpiryDate = request.ExpiryDate,
+            ExpiryDate = request.ExpiryDate.HasValue
+                ? (request.ExpiryDate.Value.Kind == DateTimeKind.Utc
+                    ? request.ExpiryDate
+                    : DateTime.SpecifyKind(request.ExpiryDate.Value, DateTimeKind.Utc))
+                : null,
             InitialQuantity = request.Quantity,
             CurrentQuantity = request.Quantity,
-            ReceivedDate = request.MovementDate,
+            ReceivedDate = movementDate,
             SupplierId = request.SupplierId,
             Brand = request.Brand ?? product.Brand,
             Notes = request.Notes
@@ -63,12 +71,10 @@ public class RegistrarEntradaCommandHandler : IRequestHandler<RegistrarEntradaCo
 
         _context.Batches.Add(batch);
 
-        // Update product current stock
         product.CurrentStock += request.Quantity;
         if (!string.IsNullOrWhiteSpace(request.Brand))
             product.Brand = request.Brand;
 
-        // Register Stock Movement
         var movement = new StockMovement
         {
             TenantId = tenantId,
@@ -77,7 +83,7 @@ public class RegistrarEntradaCommandHandler : IRequestHandler<RegistrarEntradaCo
             MovementType = MovementType.Entrada,
             MovementReason = MovementReason.CompraFornecedor,
             Quantity = request.Quantity,
-            MovementDate = request.MovementDate,
+            MovementDate = movementDate,
             DocumentNumber = request.DocumentNumber,
             Notes = request.Notes
         };
@@ -120,8 +126,8 @@ public class RegistrarSaidaCommandHandler : IRequestHandler<RegistrarSaidaComman
             throw new ArgumentException("A quantidade deve ser maior que zero.");
 
         var product = await _context.Products
-            .Include(p => p.Batches.Where(b => b.CurrentQuantity > 0))
-            .FirstOrDefaultAsync(p => p.Id == request.ProductId, cancellationToken)
+            .Include(p => p.Batches.Where(b => b.TenantId == tenantId && b.CurrentQuantity > 0))
+            .FirstOrDefaultAsync(p => p.Id == request.ProductId && p.TenantId == tenantId, cancellationToken)
             ?? throw new KeyNotFoundException("Produto não encontrado.");
 
         if (product.CurrentStock < request.Quantity)
@@ -165,6 +171,10 @@ public class RegistrarSaidaCommandHandler : IRequestHandler<RegistrarSaidaComman
 
         product.CurrentStock = Math.Max(0, product.CurrentStock - request.Quantity);
 
+        var movementDate = request.MovementDate.Kind == DateTimeKind.Utc
+            ? request.MovementDate
+            : DateTime.SpecifyKind(request.MovementDate, DateTimeKind.Utc);
+
         var movement = new StockMovement
         {
             TenantId = tenantId,
@@ -173,7 +183,7 @@ public class RegistrarSaidaCommandHandler : IRequestHandler<RegistrarSaidaComman
             MovementType = MovementType.Saida,
             MovementReason = request.Reason,
             Quantity = request.Quantity,
-            MovementDate = request.MovementDate,
+            MovementDate = movementDate,
             DocumentNumber = request.DocumentNumber,
             Notes = request.Notes
         };
@@ -208,7 +218,8 @@ public class AjustarEstoqueCommandHandler : IRequestHandler<AjustarEstoqueComman
         var tenantId = _currentTenant.TenantId
             ?? throw new InvalidOperationException("Nenhuma empresa ativa selecionada.");
 
-        var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == request.ProductId, cancellationToken)
+        var product = await _context.Products
+            .FirstOrDefaultAsync(p => p.Id == request.ProductId && p.TenantId == tenantId, cancellationToken)
             ?? throw new KeyNotFoundException("Produto não encontrado.");
 
         var diff = request.NewQuantity - product.CurrentStock;
@@ -243,18 +254,24 @@ public record GetMovimentacoesQuery(
 public class GetMovimentacoesQueryHandler : IRequestHandler<GetMovimentacoesQuery, List<StockMovementDto>>
 {
     private readonly IGestoqueDbContext _context;
+    private readonly ICurrentTenantService _currentTenant;
 
-    public GetMovimentacoesQueryHandler(IGestoqueDbContext context)
+    public GetMovimentacoesQueryHandler(IGestoqueDbContext context, ICurrentTenantService currentTenant)
     {
         _context = context;
+        _currentTenant = currentTenant;
     }
 
     public async Task<List<StockMovementDto>> Handle(GetMovimentacoesQuery request, CancellationToken cancellationToken)
     {
+        var tenantId = _currentTenant.TenantId
+            ?? throw new InvalidOperationException("Nenhuma empresa ativa selecionada.");
+
         var query = _context.StockMovements
             .AsNoTracking()
             .Include(m => m.Product)
             .Include(m => m.Batch)
+            .Where(m => m.TenantId == tenantId)
             .AsQueryable();
 
         if (request.ProductId.HasValue)
@@ -305,21 +322,27 @@ public record GetDashboardKpisQuery : IRequest<DashboardKpisDto>;
 public class GetDashboardKpisQueryHandler : IRequestHandler<GetDashboardKpisQuery, DashboardKpisDto>
 {
     private readonly IGestoqueDbContext _context;
+    private readonly ICurrentTenantService _currentTenant;
 
-    public GetDashboardKpisQueryHandler(IGestoqueDbContext context)
+    public GetDashboardKpisQueryHandler(IGestoqueDbContext context, ICurrentTenantService currentTenant)
     {
         _context = context;
+        _currentTenant = currentTenant;
     }
 
     public async Task<DashboardKpisDto> Handle(GetDashboardKpisQuery request, CancellationToken cancellationToken)
     {
+        var tenantId = _currentTenant.TenantId
+            ?? throw new InvalidOperationException("Nenhuma empresa ativa selecionada.");
+
         var now = DateTime.UtcNow;
         var startOfMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
 
         var products = await _context.Products
             .AsNoTracking()
-            .Include(p => p.Batches.Where(b => b.CurrentQuantity > 0))
-            .Where(p => p.IsActive)
+            .Include(p => p.Batches.Where(b => b.TenantId == tenantId && b.CurrentQuantity > 0))
+            .Where(p => p.IsActive && p.TenantId == tenantId)
+            .Where(p => p.Batches.Any(b => b.CurrentQuantity > 0) || p.StockMovements.Any())
             .ToListAsync(cancellationToken);
 
         var totalProducts = products.Count;
@@ -347,7 +370,7 @@ public class GetDashboardKpisQueryHandler : IRequestHandler<GetDashboardKpisQuer
 
         var monthMovements = await _context.StockMovements
             .AsNoTracking()
-            .Where(m => m.MovementDate >= startOfMonth)
+            .Where(m => m.TenantId == tenantId && m.MovementDate >= startOfMonth)
             .Select(m => new { m.MovementType, m.Quantity })
             .ToListAsync(cancellationToken);
 

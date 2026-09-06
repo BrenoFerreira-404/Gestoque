@@ -126,6 +126,7 @@
     private List<PosicaoEstoqueDto> products = new();
     private List<StockMovementDto> recentMovements = new();
     private PosicaoEstoqueDto? selectedProduct;
+    private IDisposable? _tenantChangedRegistration;
 
     private Guid selectedProductId;
     private decimal quantity = 1;
@@ -145,6 +146,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _tenantChangedRegistration = TenantSession.RegisterOnTenantChanged(() => InvokeAsync(LoadDataAsync));
         await LoadDataAsync();
 
         if (ProductId.HasValue && products.Any(p => p.ProductId == ProductId.Value))
@@ -156,7 +158,14 @@
 
     private async Task LoadDataAsync()
     {
-        products = await Mediator.Send(new GetPosicaoEstoqueQuery());
+        if (!TenantSession.SelectedTenantId.HasValue)
+        {
+            products = new();
+            recentMovements = new();
+            return;
+        }
+
+        products = await Mediator.Send(new GetAllProductsQuery());
         recentMovements = await Mediator.Send(new GetMovimentacoesQuery(Type: MovementType.Saida));
     }
 
@@ -210,5 +219,10 @@
         {
             NotificationService.Notify(NotificationSeverity.Error, "Erro ao registrar saída", ex.Message);
         }
+    }
+
+    public void Dispose()
+    {
+        _tenantChangedRegistration?.Dispose();
     }
 }
