@@ -141,6 +141,33 @@ api.MapPost("/fornecedores", async (
     return Results.Created($"/api/v1/fornecedores/{id}", new { id });
 });
 
+api.MapPut("/fornecedores/{id:guid}", async (
+    Guid id,
+    UpdateSupplierRequest request,
+    ISender sender,
+    CancellationToken cancellationToken) =>
+{
+    await sender.Send(new UpdateSupplierCommand(
+        id,
+        request.Name,
+        request.CnpjCpf,
+        request.Phone,
+        request.Email,
+        request.ContactPerson,
+        request.IsActive), cancellationToken);
+
+    return Results.NoContent();
+});
+
+api.MapDelete("/fornecedores/{id:guid}", async (
+    Guid id,
+    ISender sender,
+    CancellationToken cancellationToken) =>
+{
+    await sender.Send(new DeleteSupplierCommand(id), cancellationToken);
+    return Results.NoContent();
+});
+
 api.MapGet("/movimentacoes", async (
     Guid? productId,
     MovementType? type,
@@ -257,6 +284,14 @@ public sealed record CreateSupplierRequest(
     string? Phone,
     string? Email,
     string? ContactPerson);
+
+public sealed record UpdateSupplierRequest(
+    string Name,
+    string? CnpjCpf,
+    string? Phone,
+    string? Email,
+    string? ContactPerson,
+    bool IsActive);
 
 public sealed record RegisterEntryRequest(
     Guid ProductId,

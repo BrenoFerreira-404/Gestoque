@@ -61,3 +61,4 @@ C:\Projetos_Oficial\Gestoque\src\Gestoque.Api\obj\Debug\net8.0\refint\Gestoque.A
 C:\Projetos_Oficial\Gestoque\src\Gestoque.Api\obj\Debug\net8.0\Gestoque.Api.pdb
 C:\Projetos_Oficial\Gestoque\src\Gestoque.Api\obj\Debug\net8.0\Gestoque.Api.genruntimeconfig.cache
 C:\Projetos_Oficial\Gestoque\src\Gestoque.Api\obj\Debug\net8.0\ref\Gestoque.Api.dll
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Api\obj\Debug\net8.0\Gestoque.Api.sourcelink.json

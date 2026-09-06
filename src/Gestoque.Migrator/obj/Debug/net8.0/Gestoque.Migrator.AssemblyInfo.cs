@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Gestoque.Migrator")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0745aa92a0bcdb41ad5b060c2e1852239d4472f7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cea7541ee1a83f8479896a372d7fd0baf49821b2")]
 [assembly: System.Reflection.AssemblyProductAttribute("Gestoque.Migrator")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Gestoque.Migrator")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

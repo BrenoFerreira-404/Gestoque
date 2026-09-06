@@ -56,7 +56,8 @@ public record UpdateSupplierCommand(
     string? CnpjCpf,
     string? Phone,
     string? Email,
-    string? ContactPerson
+    string? ContactPerson,
+    bool IsActive
 ) : IRequest;
 
 public class UpdateSupplierCommandHandler : IRequestHandler<UpdateSupplierCommand>
@@ -83,6 +84,7 @@ public class UpdateSupplierCommandHandler : IRequestHandler<UpdateSupplierComman
         supplier.Phone = request.Phone;
         supplier.Email = request.Email;
         supplier.ContactPerson = request.ContactPerson;
+        supplier.IsActive = request.IsActive;
         await _context.SaveChangesAsync(cancellationToken);
     }
 }
@@ -137,7 +139,7 @@ public class GetSuppliersQueryHandler : IRequestHandler<GetSuppliersQuery, List<
 
         return await _context.Suppliers
             .AsNoTracking()
-            .Where(s => s.IsActive && s.TenantId == tenantId)
+            .Where(s => s.TenantId == tenantId)
             .OrderBy(s => s.Name)
             .Select(s => new SupplierDto(
                 s.Id,

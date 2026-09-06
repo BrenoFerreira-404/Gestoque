@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Gestoque.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0745aa92a0bcdb41ad5b060c2e1852239d4472f7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c6e593959ca224a7059ba15451627e5d08138bfc")]
 [assembly: System.Reflection.AssemblyProductAttribute("Gestoque.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Gestoque.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

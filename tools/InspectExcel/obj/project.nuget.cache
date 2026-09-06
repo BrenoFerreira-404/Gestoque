@@ -1,17 +1,17 @@
 {
   "version": 2,
-  "dgSpecHash": "gTtlP+d3Y4o=",
+  "dgSpecHash": "ltBdyqkoec4=",
   "success": true,
   "projectFilePath": "C:\\Projetos_Oficial\\Gestoque\\tools\\InspectExcel\\InspectExcel.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\heitorhog\\AppData\\Local\\Temp\\cursor-sandbox-cache\\f3f26ab9ed64f2e67208a649756845d6\\nuget\\closedxml\\0.105.1\\closedxml.0.105.1.nupkg.sha512",
-    "C:\\Users\\heitorhog\\AppData\\Local\\Temp\\cursor-sandbox-cache\\f3f26ab9ed64f2e67208a649756845d6\\nuget\\closedxml.parser\\2.0.0\\closedxml.parser.2.0.0.nupkg.sha512",
-    "C:\\Users\\heitorhog\\AppData\\Local\\Temp\\cursor-sandbox-cache\\f3f26ab9ed64f2e67208a649756845d6\\nuget\\documentformat.openxml\\3.1.1\\documentformat.openxml.3.1.1.nupkg.sha512",
-    "C:\\Users\\heitorhog\\AppData\\Local\\Temp\\cursor-sandbox-cache\\f3f26ab9ed64f2e67208a649756845d6\\nuget\\documentformat.openxml.framework\\3.1.1\\documentformat.openxml.framework.3.1.1.nupkg.sha512",
-    "C:\\Users\\heitorhog\\AppData\\Local\\Temp\\cursor-sandbox-cache\\f3f26ab9ed64f2e67208a649756845d6\\nuget\\excelnumberformat\\1.1.0\\excelnumberformat.1.1.0.nupkg.sha512",
-    "C:\\Users\\heitorhog\\AppData\\Local\\Temp\\cursor-sandbox-cache\\f3f26ab9ed64f2e67208a649756845d6\\nuget\\rbush.signed\\4.0.0\\rbush.signed.4.0.0.nupkg.sha512",
-    "C:\\Users\\heitorhog\\AppData\\Local\\Temp\\cursor-sandbox-cache\\f3f26ab9ed64f2e67208a649756845d6\\nuget\\sixlabors.fonts\\1.0.0\\sixlabors.fonts.1.0.0.nupkg.sha512",
-    "C:\\Users\\heitorhog\\AppData\\Local\\Temp\\cursor-sandbox-cache\\f3f26ab9ed64f2e67208a649756845d6\\nuget\\system.io.packaging\\8.0.1\\system.io.packaging.8.0.1.nupkg.sha512"
+    "C:\\Users\\heitorhog\\.nuget\\packages\\closedxml\\0.105.1\\closedxml.0.105.1.nupkg.sha512",
+    "C:\\Users\\heitorhog\\.nuget\\packages\\closedxml.parser\\2.0.0\\closedxml.parser.2.0.0.nupkg.sha512",
+    "C:\\Users\\heitorhog\\.nuget\\packages\\documentformat.openxml\\3.1.1\\documentformat.openxml.3.1.1.nupkg.sha512",
+    "C:\\Users\\heitorhog\\.nuget\\packages\\documentformat.openxml.framework\\3.1.1\\documentformat.openxml.framework.3.1.1.nupkg.sha512",
+    "C:\\Users\\heitorhog\\.nuget\\packages\\excelnumberformat\\1.1.0\\excelnumberformat.1.1.0.nupkg.sha512",
+    "C:\\Users\\heitorhog\\.nuget\\packages\\rbush.signed\\4.0.0\\rbush.signed.4.0.0.nupkg.sha512",
+    "C:\\Users\\heitorhog\\.nuget\\packages\\sixlabors.fonts\\1.0.0\\sixlabors.fonts.1.0.0.nupkg.sha512",
+    "C:\\Users\\heitorhog\\.nuget\\packages\\system.io.packaging\\8.0.1\\system.io.packaging.8.0.1.nupkg.sha512"
   ],
   "logs": []
 }

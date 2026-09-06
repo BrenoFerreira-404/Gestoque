@@ -1231,7 +1231,8 @@
           "FluentValidation.DependencyInjectionExtensions": "12.1.1",
           "Gestoque.Domain": "1.0.0",
           "MediatR": "14.2.0",
-          "Microsoft.EntityFrameworkCore": "8.0.11"
+          "Microsoft.EntityFrameworkCore": "8.0.11",
+          "Microsoft.EntityFrameworkCore.Relational": "8.0.11"
         },
         "compile": {
           "bin/placeholder/Gestoque.Application.dll": {}
@@ -3123,7 +3124,7 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\heitorhog\\AppData\\Local\\Temp\\cursor-sandbox-cache\\f3f26ab9ed64f2e67208a649756845d6\\nuget": {},
+    "C:\\Users\\heitorhog\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
@@ -3132,7 +3133,7 @@
       "projectUniqueName": "C:\\Projetos_Oficial\\Gestoque\\src\\Gestoque.Web\\Gestoque.Web.csproj",
       "projectName": "Gestoque.Web",
       "projectPath": "C:\\Projetos_Oficial\\Gestoque\\src\\Gestoque.Web\\Gestoque.Web.csproj",
-      "packagesPath": "C:\\Users\\heitorhog\\AppData\\Local\\Temp\\cursor-sandbox-cache\\f3f26ab9ed64f2e67208a649756845d6\\nuget",
+      "packagesPath": "C:\\Users\\heitorhog\\.nuget\\packages\\",
       "outputPath": "C:\\Projetos_Oficial\\Gestoque\\src\\Gestoque.Web\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [

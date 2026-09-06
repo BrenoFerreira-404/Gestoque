@@ -15,6 +15,13 @@
     </div>
 
     <RadzenButton Text="Novo Fornecedor" Icon="add_circle" ButtonStyle="ButtonStyle.Primary" Click="@(() => showModal = true)" />
+
+    <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem;">
+        <label style="font-size: 0.85rem; font-weight: 600; color: #334155;">Status:</label>
+        <RadzenDropDown @bind-Value="statusFilter" Change="@OnStatusFilterChanged"
+                        Data="@statusFilterOptions" TextProperty="Text" ValueProperty="Value"
+                        Placeholder="Todos" Style="width: 180px;" />
+    </div>
 </div>
 
 @if (loading)
@@ -24,7 +31,7 @@
 else
 {
     <RadzenCard Style="background: white; border-radius: 8px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-        <RadzenDataGrid Data="@suppliers" TItem="SupplierDto" AllowPaging="true" PageSize="10" AllowSorting="true"
+        <RadzenDataGrid Data="@filteredSuppliers" TItem="SupplierDto" AllowPaging="true" PageSize="10" AllowSorting="true"
                         AllowFiltering="true" FilterMode="FilterMode.Simple" EmptyText="Nenhum fornecedor cadastrado.">
             <Columns>
                 <RadzenDataGridColumn Property="Name" Title="Razão Social / Nome Fantasia" Width="260px">
@@ -51,7 +58,7 @@ else
                     </Template>
                 </RadzenDataGridColumn>
 
-                <RadzenDataGridColumn Property="IsActive" Title="Status" Width="100px">
+                <RadzenDataGridColumn Property="IsActive" Title="Status" Width="100px" Filterable="false">
                     <Template Context="s">
                         <RadzenBadge BadgeStyle="@(s.IsActive ? BadgeStyle.Success : BadgeStyle.Danger)" Text="@(s.IsActive ? "ATIVO" : "INATIVO")" />
                     </Template>
@@ -104,6 +111,11 @@ else
                     <RadzenTextBox @bind-Value="@newContact" Placeholder="Ex: João Silva" Style="width: 100%;" />
                 </div>
 
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <RadzenCheckBox @bind-Value="@newIsActive" />
+                    <label style="font-size: 0.85rem; font-weight: 600; color: #334155;">Fornecedor ativo</label>
+                </div>
+
                 <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
                     <RadzenButton Text="Cancelar" ButtonStyle="ButtonStyle.Light" Click="@(() => showModal = false)" />
                     <RadzenButton Text="Salvar Fornecedor" ButtonStyle="ButtonStyle.Primary" Click="@ConfirmarSalvarFornecedorAsync" />
@@ -116,9 +128,24 @@ else
 @code {
     private bool loading = true;
     private List<SupplierDto> suppliers = new();
+    private List<SupplierDto> filteredSuppliers = new();
     private bool showModal = false;
     private Guid? editingSupplierId;
     private IDisposable? _tenantChangedRegistration;
+    private bool? statusFilter;
+    private List<StatusFilterOption> statusFilterOptions = new()
+    {
+        new("Todos", null),
+        new("Ativos", true),
+        new("Inativos", false)
+    };
+
+    private void OnStatusFilterChanged()
+    {
+        filteredSuppliers = statusFilter.HasValue
+            ? suppliers.Where(s => s.IsActive == statusFilter.Value).ToList()
+            : suppliers.ToList();
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -136,12 +163,14 @@ else
     private string? newPhone;
     private string? newEmail;
     private string? newContact;
+    private bool newIsActive = true;
 
     private async Task LoadSuppliersAsync()
     {
         if (!TenantSession.SelectedTenantId.HasValue)
         {
             suppliers = new();
+            filteredSuppliers = new();
             return;
         }
 
@@ -149,6 +178,7 @@ else
         try
         {
             suppliers = await Mediator.Send(new GetSuppliersQuery());
+            OnStatusFilterChanged();
         }
         finally
         {
@@ -169,7 +199,7 @@ else
             if (editingSupplierId.HasValue)
             {
                 await Mediator.Send(new UpdateSupplierCommand(
-                    editingSupplierId.Value, newName, newCnpj, newPhone, newEmail, newContact));
+                    editingSupplierId.Value, newName, newCnpj, newPhone, newEmail, newContact, newIsActive));
             }
             else
             {
@@ -188,6 +218,7 @@ else
             newPhone = null;
             newEmail = null;
             newContact = null;
+            newIsActive = true;
             editingSupplierId = null;
             showModal = false;
 
@@ -214,6 +245,7 @@ else
         newPhone = supplier.Phone;
         newEmail = supplier.Email;
         newContact = supplier.ContactPerson;
+        newIsActive = supplier.IsActive;
         showModal = true;
     }
 
@@ -233,5 +265,7 @@ else
             NotificationService.Notify(NotificationSeverity.Error, "Erro ao excluir", ex.Message);
         }
     }
+
+    private sealed record StatusFilterOption(string Text, bool? Value);
 }
 

@@ -29,3 +29,7 @@ if (wb.TryGetWorksheet("ESTOQUE", out var estoque))
     for (int r = headerRow; r <= Math.Min(20, estoque.LastRowUsed()?.RowNumber() ?? 0); r++)
         Console.WriteLine($"R{r}: A={estoque.Cell(r,1).GetString()[..Math.Min(40, estoque.Cell(r,1).GetString().Length)]}");
 }
+
+if (wb.TryGetWorksheet("ENTRADA", out var entrada))
+{
+}

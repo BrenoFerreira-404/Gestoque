@@ -116,3 +116,4 @@ C:\Projetos_Oficial\Gestoque\src\Gestoque.Migrator\obj\Debug\net8.0\Gestoque.Mig
 C:\Projetos_Oficial\Gestoque\src\Gestoque.Migrator\obj\Debug\net8.0\Gestoque.Migrator.genruntimeconfig.cache
 C:\Projetos_Oficial\Gestoque\src\Gestoque.Migrator\obj\Debug\net8.0\ref\Gestoque.Migrator.dll
 C:\Projetos_Oficial\Gestoque\src\Gestoque.Migrator\bin\Debug\net8.0\appsettings.json
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Migrator\obj\Debug\net8.0\Gestoque.Migrator.sourcelink.json

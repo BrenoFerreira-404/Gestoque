@@ -314,7 +314,8 @@
           "FluentValidation.DependencyInjectionExtensions": "12.1.1",
           "Gestoque.Domain": "1.0.0",
           "MediatR": "14.2.0",
-          "Microsoft.EntityFrameworkCore": "8.0.11"
+          "Microsoft.EntityFrameworkCore": "8.0.11",
+          "Microsoft.EntityFrameworkCore.Relational": "8.0.11"
         },
         "runtime": {
           "Gestoque.Application.dll": {

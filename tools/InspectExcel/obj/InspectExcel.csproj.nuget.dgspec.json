@@ -10,7 +10,7 @@
         "projectUniqueName": "C:\\Projetos_Oficial\\Gestoque\\tools\\InspectExcel\\InspectExcel.csproj",
         "projectName": "InspectExcel",
         "projectPath": "C:\\Projetos_Oficial\\Gestoque\\tools\\InspectExcel\\InspectExcel.csproj",
-        "packagesPath": "C:\\Users\\heitorhog\\AppData\\Local\\Temp\\cursor-sandbox-cache\\f3f26ab9ed64f2e67208a649756845d6\\nuget",
+        "packagesPath": "C:\\Users\\heitorhog\\.nuget\\packages\\",
         "outputPath": "C:\\Projetos_Oficial\\Gestoque\\tools\\InspectExcel\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
