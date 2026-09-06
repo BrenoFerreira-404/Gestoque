@@ -5,6 +5,7 @@
 @inject TenantSessionState TenantSession
 @inject NavigationManager Navigation
 @inject NotificationService NotificationService
+@inject DialogService DialogService
 
 <PageTitle>Importar Planilha Excel - Gestoque Pro</PageTitle>
 
@@ -54,7 +55,7 @@
                 }
 
                 <RadzenButton Text="Iniciar Importação Agora" Icon="cloud_upload" ButtonStyle="ButtonStyle.Success"
-                              Click="@ExecutarImportacaoAsync" Disabled="@(!HasFile || isImporting)"
+                              Click="@ConfirmarImportacaoAsync" Disabled="@(!HasFile || isImporting)"
                               Style="height: 48px; width: 100%;" />
             </RadzenStack>
 
@@ -159,5 +160,11 @@
             }
             isImporting = false;
         }
+    }
+
+    private async Task ConfirmarImportacaoAsync()
+    {
+        if (await DialogService.Confirm("Tem certeza que deseja importar esta planilha?", "Confirmar importação", new ConfirmOptions { OkButtonText = "Sim", CancelButtonText = "Não" }) == true)
+            await ExecutarImportacaoAsync();
     }
 }

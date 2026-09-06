@@ -3,6 +3,7 @@
 @inject TenantSessionState TenantSession
 @inject NavigationManager Navigation
 @inject NotificationService NotificationService
+@inject DialogService DialogService
 
 <PageTitle>Entrada de Mercadoria - Gestoque Pro</PageTitle>
 
@@ -84,7 +85,7 @@
             </div>
 
             <RadzenButton Text="Confirmar Entrada no Estoque" Icon="check_circle" ButtonStyle="ButtonStyle.Success"
-                          Click="@SalvarEntradaAsync" Style="margin-top: 0.5rem; height: 44px; font-weight: 600;" />
+                          Click="@ConfirmarSalvarEntradaAsync" Style="margin-top: 0.5rem; height: 44px; font-weight: 600;" />
         </div>
     </RadzenCard>
 
@@ -223,6 +224,12 @@
         {
             NotificationService.Notify(NotificationSeverity.Error, "Erro ao registrar entrada", ex.Message);
         }
+    }
+
+    private async Task ConfirmarSalvarEntradaAsync()
+    {
+        if (await DialogService.Confirm("Tem certeza que deseja registrar esta entrada?", "Confirmar entrada", new ConfirmOptions { OkButtonText = "Sim", CancelButtonText = "Não" }) == true)
+            await SalvarEntradaAsync();
     }
 
     public void Dispose()

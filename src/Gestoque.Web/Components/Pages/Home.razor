@@ -3,6 +3,7 @@
 @inject TenantSessionState TenantSession
 @inject NavigationManager Navigation
 @inject NotificationService NotificationService
+@inject DialogService DialogService
 
 <PageTitle>Dashboard - Gestoque Pro</PageTitle>
 
@@ -121,7 +122,7 @@
                     @if (selectedCriticalProductIds.Count > 0)
                     {
                         <RadzenButton Text="Dar saída nos selecionados" Icon="output" ButtonStyle="ButtonStyle.Danger"
-                                      Click="DarSaidaSelecionadosAsync" />
+                                      Click="ConfirmarDarSaidaSelecionadosAsync" />
                     }
                     <RadzenButton Text="Ver Posição Completa" Icon="chevron_right" ButtonStyle="ButtonStyle.Light"
                                   Click="@(() => Navigation.NavigateTo("estoque"))" />
@@ -278,5 +279,11 @@
         selectedCriticalProductIds.Clear();
         NotificationService.Notify(NotificationSeverity.Success, "Saídas registradas", $"Saída registrada para {exited} produto(s). Os cadastros foram preservados.");
         await LoadDashboardDataAsync();
+    }
+
+    private async Task ConfirmarDarSaidaSelecionadosAsync()
+    {
+        if (await DialogService.Confirm("Tem certeza que deseja dar saída de todo o saldo dos itens selecionados?", "Confirmar saídas", new ConfirmOptions { OkButtonText = "Sim", CancelButtonText = "Não" }) == true)
+            await DarSaidaSelecionadosAsync();
     }
 }

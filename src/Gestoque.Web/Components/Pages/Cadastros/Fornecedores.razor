@@ -2,6 +2,7 @@
 @inject IMediator Mediator
 @inject TenantSessionState TenantSession
 @inject NotificationService NotificationService
+@inject DialogService DialogService
 
 <PageTitle>Fornecedores - Gestoque Pro</PageTitle>
 
@@ -96,7 +97,7 @@ else
 
                 <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
                     <RadzenButton Text="Cancelar" ButtonStyle="ButtonStyle.Light" Click="@(() => showModal = false)" />
-                    <RadzenButton Text="Salvar Fornecedor" ButtonStyle="ButtonStyle.Primary" Click="@SalvarFornecedorAsync" />
+                    <RadzenButton Text="Salvar Fornecedor" ButtonStyle="ButtonStyle.Primary" Click="@ConfirmarSalvarFornecedorAsync" />
                 </div>
             </div>
         </RadzenCard>
@@ -178,6 +179,12 @@ else
         {
             NotificationService.Notify(NotificationSeverity.Error, "Erro ao salvar", ex.Message);
         }
+    }
+
+    private async Task ConfirmarSalvarFornecedorAsync()
+    {
+        if (await DialogService.Confirm("Tem certeza que deseja salvar este fornecedor?", "Confirmar salvamento", new ConfirmOptions { OkButtonText = "Sim", CancelButtonText = "Não" }) == true)
+            await SalvarFornecedorAsync();
     }
 }
 

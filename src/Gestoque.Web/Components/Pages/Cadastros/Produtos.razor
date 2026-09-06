@@ -3,6 +3,7 @@
 @inject TenantSessionState TenantSession
 @inject NavigationManager Navigation
 @inject NotificationService NotificationService
+@inject DialogService DialogService
 
 <PageTitle>Produtos - Gestoque Pro</PageTitle>
 
@@ -130,7 +131,7 @@ else
 
                 <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
                     <RadzenButton Text="Cancelar" ButtonStyle="ButtonStyle.Light" Click="@(() => showModal = false)" />
-                    <RadzenButton Text="Salvar Produto" ButtonStyle="ButtonStyle.Primary" Click="@SalvarProdutoAsync" />
+                    <RadzenButton Text="Salvar Produto" ButtonStyle="ButtonStyle.Primary" Click="@ConfirmarSalvarProdutoAsync" />
                 </div>
             </div>
         </RadzenCard>
@@ -219,5 +220,11 @@ else
         {
             NotificationService.Notify(NotificationSeverity.Error, "Erro ao salvar", ex.Message);
         }
+    }
+
+    private async Task ConfirmarSalvarProdutoAsync()
+    {
+        if (await DialogService.Confirm("Tem certeza que deseja salvar este produto?", "Confirmar salvamento", new ConfirmOptions { OkButtonText = "Sim", CancelButtonText = "Não" }) == true)
+            await SalvarProdutoAsync();
     }
 }

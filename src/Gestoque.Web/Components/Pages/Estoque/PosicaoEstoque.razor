@@ -4,6 +4,7 @@
 @inject NavigationManager Navigation
 @inject NotificationService NotificationService
 @inject DialogService DialogService
+@inject DialogService DialogService
 
 <PageTitle>Posição do Estoque - Gestoque Pro</PageTitle>
 
@@ -196,7 +197,7 @@ else
 
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
                 <RadzenButton Text="Cancelar" ButtonStyle="ButtonStyle.Light" Click="@(() => selectedItemParaAjuste = null)" />
-                <RadzenButton Text="Confirmar Ajuste" ButtonStyle="ButtonStyle.Primary" Click="@ConfirmarAjusteAsync" />
+                <RadzenButton Text="Confirmar Ajuste" ButtonStyle="ButtonStyle.Primary" Click="@ConfirmarAjusteComDialogAsync" />
             </div>
         </RadzenCard>
     </div>
@@ -290,5 +291,11 @@ else
         {
             NotificationService.Notify(NotificationSeverity.Error, "Erro ao ajustar", ex.Message);
         }
+    }
+
+    private async Task ConfirmarAjusteComDialogAsync()
+    {
+        if (await DialogService.Confirm("Tem certeza que deseja salvar este ajuste de estoque?", "Confirmar ajuste", new ConfirmOptions { OkButtonText = "Sim", CancelButtonText = "Não" }) == true)
+            await ConfirmarAjusteAsync();
     }
 }

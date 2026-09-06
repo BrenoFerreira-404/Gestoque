@@ -3,6 +3,7 @@
 @inject TenantSessionState TenantSession
 @inject NavigationManager Navigation
 @inject NotificationService NotificationService
+@inject DialogService DialogService
 
 <PageTitle>Empresas - Gestoque Pro</PageTitle>
 
@@ -132,7 +133,7 @@ else
 
                 <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.75rem;">
                     <RadzenButton Text="Cancelar" ButtonStyle="ButtonStyle.Light" Click="@(() => showModal = false)" />
-                    <RadzenButton Text="Criar Empresa" ButtonStyle="ButtonStyle.Primary" Click="@SalvarEmpresaAsync" />
+                    <RadzenButton Text="Criar Empresa" ButtonStyle="ButtonStyle.Primary" Click="@ConfirmarSalvarEmpresaAsync" />
                 </div>
             </div>
         </RadzenCard>
@@ -209,6 +210,12 @@ else
         {
             NotificationService.Notify(NotificationSeverity.Error, "Erro ao criar empresa", ex.Message);
         }
+    }
+
+    private async Task ConfirmarSalvarEmpresaAsync()
+    {
+        if (await DialogService.Confirm("Tem certeza que deseja cadastrar esta empresa?", "Confirmar cadastro", new ConfirmOptions { OkButtonText = "Sim", CancelButtonText = "Não" }) == true)
+            await SalvarEmpresaAsync();
     }
 
     private async Task ExcluirEmpresaAsync()

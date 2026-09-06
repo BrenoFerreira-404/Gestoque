@@ -3,6 +3,7 @@
 @inject TenantSessionState TenantSession
 @inject NavigationManager Navigation
 @inject NotificationService NotificationService
+@inject DialogService DialogService
 
 <PageTitle>Saída e Baixas - Gestoque Pro</PageTitle>
 
@@ -80,7 +81,7 @@
             </div>
 
             <RadzenButton Text="Confirmar Saída do Estoque" Icon="remove_circle" ButtonStyle="ButtonStyle.Danger"
-                          Click="@SalvarSaidaAsync" Style="margin-top: 0.5rem; height: 44px; font-weight: 600;" />
+                          Click="@ConfirmarSalvarSaidaAsync" Style="margin-top: 0.5rem; height: 44px; font-weight: 600;" />
         </div>
     </RadzenCard>
 
@@ -219,6 +220,12 @@
         {
             NotificationService.Notify(NotificationSeverity.Error, "Erro ao registrar saída", ex.Message);
         }
+    }
+
+    private async Task ConfirmarSalvarSaidaAsync()
+    {
+        if (await DialogService.Confirm("Tem certeza que deseja registrar esta saída?", "Confirmar saída", new ConfirmOptions { OkButtonText = "Sim", CancelButtonText = "Não" }) == true)
+            await SalvarSaidaAsync();
     }
 
     public void Dispose()
