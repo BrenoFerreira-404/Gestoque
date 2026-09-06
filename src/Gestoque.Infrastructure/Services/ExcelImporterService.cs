@@ -141,6 +141,20 @@ public class ExcelImporterService
 
         await _context.SaveChangesAsync();
 
+        // 3b. IMPORTAR ENTRADAS DIÁRIAS da aba "ENTRADA"
+        if (TryGetWorksheetCaseInsensitive(workbook, "ENTRADA", out var wsEntrada)
+            && !await HasImportedMovementAsync(tenantId, MovementType.Entrada, "Entrada importada da planilha"))
+        {
+            movementsCount += ImportDailyMatrixMovements(
+                wsEntrada,
+                productsByRowId,
+                tenantId,
+                MovementType.Entrada,
+                MovementReason.CompraFornecedor,
+                "Entrada importada da planilha");
+            await _context.SaveChangesAsync();
+        }
+
         // 3. IMPORTAR HISTÓRICO DE ENTREGAS (sem alterar saldo — já refletido no ESTOQUE)
         if (entregaLastRow >= 4)
         {
@@ -288,6 +302,59 @@ public class ExcelImporterService
         return movementsCount;
     }
 
+    public async Task<int> ImportStockInflowsAsync(string filePath, Guid tenantId)
+    {
+        if (!File.Exists(filePath))
+            throw new FileNotFoundException("Arquivo Excel não encontrado.", filePath);
+
+        using var workbook = new XLWorkbook(filePath);
+        if (!TryGetWorksheetCaseInsensitive(workbook, "ESTOQUE", out var wsEstoque))
+            throw new InvalidOperationException("Aba 'ESTOQUE' não encontrada na planilha.");
+        if (!TryGetWorksheetCaseInsensitive(workbook, "ENTRADA", out var wsEntrada))
+            throw new InvalidOperationException("Aba 'ENTRADA' não encontrada na planilha.");
+
+        var productsByRowId = await LoadProductsBySpreadsheetRowIdAsync(wsEstoque, tenantId);
+        var movementsCount = 0;
+        if (!await HasImportedMovementAsync(tenantId, MovementType.Entrada, "Entrada importada da planilha"))
+        {
+            movementsCount = ImportDailyMatrixMovements(
+                wsEntrada,
+                productsByRowId,
+                tenantId,
+                MovementType.Entrada,
+                MovementReason.CompraFornecedor,
+                "Entrada importada da planilha");
+        }
+
+        var initialStockMovements = await _context.StockMovements
+            .IgnoreQueryFilters()
+            .Where(m => m.TenantId == tenantId
+                && m.MovementType == MovementType.Entrada
+                && m.MovementReason == MovementReason.AjusteInventario
+                && m.Notes != null
+                && m.Notes.StartsWith("Saldo Inicial importado"))
+            .ToListAsync();
+
+        foreach (var movement in initialStockMovements)
+            movement.MovementType = MovementType.Ajuste;
+
+        await _context.SaveChangesAsync();
+        return movementsCount;
+    }
+
+    private async Task<bool> HasImportedMovementAsync(
+        Guid tenantId,
+        MovementType movementType,
+        string notesPrefix)
+    {
+        return await _context.StockMovements
+            .IgnoreQueryFilters()
+            .AnyAsync(m => m.TenantId == tenantId
+                && m.MovementType == movementType
+                && m.Notes != null
+                && m.Notes.StartsWith(notesPrefix));
+    }
+
     private async Task<Dictionary<string, Product>> LoadProductsCacheAsync(Guid tenantId)
     {
         var products = await _context.Products
@@ -415,40 +482,33 @@ public class ExcelImporterService
 
     private static (int month, int year) ParseMonthYearFromSheet(IXLWorksheet worksheet, int headerRow)
     {
+        var lastCol = worksheet.LastColumnUsed()?.ColumnNumber() ?? 1;
         for (int r = Math.Max(1, headerRow - 5); r < headerRow; r++)
         {
-            var text = worksheet.Cell(r, 1).GetString().Trim();
-            if (string.IsNullOrWhiteSpace(text))
-                continue;
-
-            var titleMatch = Regex.Match(text,
-                @"SA[ÍI]DA DE ESTOQUE\s+(\w+)\s+(\d{4})",
-                RegexOptions.IgnoreCase);
-            if (titleMatch.Success
-                && TryParsePortugueseMonth(titleMatch.Groups[1].Value, out var titleMonth)
-                && int.TryParse(titleMatch.Groups[2].Value, out var titleYear))
+            for (int c = 1; c <= lastCol; c++)
             {
-                return (titleMonth, titleYear);
-            }
+                var text = worksheet.Cell(r, c).GetFormattedString().Trim();
+                if (string.IsNullOrWhiteSpace(text))
+                    continue;
 
-            var entradaMatch = Regex.Match(text,
-                @"ENTRADA DE ESTOQUE\s+(\w+)\s+(\d{4})",
-                RegexOptions.IgnoreCase);
-            if (entradaMatch.Success
-                && TryParsePortugueseMonth(entradaMatch.Groups[1].Value, out var entradaMonth)
-                && int.TryParse(entradaMatch.Groups[2].Value, out var entradaYear))
-            {
-                return (entradaMonth, entradaYear);
-            }
+                var titleMatch = Regex.Match(text,
+                    @"(?:SA[ÍI]DA|ENTRADA) DE ESTOQUE\s+(\w+)\s+(\d{4})",
+                    RegexOptions.IgnoreCase);
+                if (titleMatch.Success
+                    && TryParsePortugueseMonth(titleMatch.Groups[1].Value, out var titleMonth)
+                    && int.TryParse(titleMatch.Groups[2].Value, out var titleYear))
+                {
+                    return (titleMonth, titleYear);
+                }
 
-            if (TryParsePortugueseMonth(text, out var monthOnly))
-            {
+                if (!TryParsePortugueseMonth(text, out var monthOnly))
+                    continue;
+
                 for (int scanRow = r; scanRow <= headerRow; scanRow++)
                 {
-                    var scanLastCol = worksheet.LastColumnUsed()?.ColumnNumber() ?? 10;
-                    for (int c = 1; c <= scanLastCol; c++)
+                    for (int scanCol = 1; scanCol <= lastCol; scanCol++)
                     {
-                        var cellText = worksheet.Cell(scanRow, c).GetString();
+                        var cellText = worksheet.Cell(scanRow, scanCol).GetFormattedString();
                         var yearMatch = Regex.Match(cellText, @"\b(20\d{2})\b");
                         if (yearMatch.Success && int.TryParse(yearMatch.Groups[1].Value, out var year))
                             return (monthOnly, year);
@@ -562,7 +622,7 @@ public class ExcelImporterService
             TenantId = tenantId,
             Product = product,
             Batch = batch,
-            MovementType = MovementType.Entrada,
+            MovementType = MovementType.Ajuste,
             MovementReason = MovementReason.AjusteInventario,
             Quantity = quantity,
             MovementDate = DateTime.UtcNow,

@@ -73,6 +73,10 @@ if (!string.IsNullOrWhiteSpace(excelFilePath))
 
     foreach (var targetTenant in tenantsWithProducts)
     {
+        var inflows = await importer.ImportStockInflowsAsync(excelFilePath, targetTenant.Id);
+        if (inflows > 0)
+            Console.WriteLine($"Entradas diárias da planilha importadas para {targetTenant.NomeFantasia}: {inflows} movimentos.");
+
         var movements = await importer.ImportStockOutflowsAsync(excelFilePath, targetTenant.Id);
         if (movements > 0)
             Console.WriteLine($"Saídas da planilha importadas para {targetTenant.NomeFantasia}: {movements} movimentos.");

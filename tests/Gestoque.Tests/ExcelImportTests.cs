@@ -55,6 +55,22 @@ public class ExcelImportTests
             .CountAsync(m => m.TenantId == tenantId && m.MovementType == Gestoque.Domain.Enums.MovementType.Saida);
         Assert.True(totalSaidas > 0, $"Esperava saídas importadas da aba SAÍDA, importou {totalSaidas}");
 
+        var hasDatedDailyEntry = await context.StockMovements.AnyAsync(m =>
+            m.TenantId == tenantId
+            && m.MovementType == Gestoque.Domain.Enums.MovementType.Entrada
+            && m.MovementDate.Year == 2023
+            && m.MovementDate.Month == 1
+            && m.Notes != null
+            && m.Notes.StartsWith("Entrada importada da planilha"));
+        Assert.True(hasDatedDailyEntry, "Esperava entradas diárias com a data indicada na aba ENTRADA.");
+
+        var initialStockAsEntry = await context.StockMovements.AnyAsync(m =>
+            m.TenantId == tenantId
+            && m.MovementType == Gestoque.Domain.Enums.MovementType.Entrada
+            && m.Notes != null
+            && m.Notes.StartsWith("Saldo Inicial importado"));
+        Assert.False(initialStockAsEntry, "Saldo inicial não deve ser tratado como entrada histórica.");
+
         // Verificar persistência no banco
         var totalProducts = await context.Products.CountAsync();
         var totalSuppliers = await context.Suppliers.CountAsync();
