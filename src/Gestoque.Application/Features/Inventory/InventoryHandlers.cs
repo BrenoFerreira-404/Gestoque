@@ -342,7 +342,7 @@ public class GetDashboardKpisQueryHandler : IRequestHandler<GetDashboardKpisQuer
             .ToListAsync(cancellationToken);
 
         var totalProducts = products.Count;
-        var belowMinimum = products.Count(p => p.IsBelowMinimumStock);
+        var belowMinimum = products.Count(p => p.CurrentStock > 0 && p.IsBelowMinimumStock);
 
         var expiringSoon = 0;
         var expired = 0;
