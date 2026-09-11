@@ -5,6 +5,7 @@ using Gestoque.Domain.Entities;
 using Gestoque.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 
 namespace Gestoque.Application.Features.Products;
 
@@ -125,69 +126,75 @@ public class GetPosicaoEstoqueQueryHandler : IRequestHandler<GetPosicaoEstoqueQu
         var tenantId = _currentTenant.TenantId
             ?? throw new InvalidOperationException("Nenhuma empresa ativa selecionada.");
 
-        var query = _context.Products
-            .AsNoTracking()
-            .AsSplitQuery()
-            .Include(p => p.Category)
-            .Include(p => p.Batches.Where(b => b.CurrentQuantity > 0))
-            .Where(p => p.IsActive && p.TenantId == tenantId)
-            .Where(p => p.Batches.Any(b => b.CurrentQuantity > 0) || p.StockMovements.Any());
-
-        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        try
         {
-            var search = request.SearchTerm.Trim().ToLower();
-            query = query.Where(p =>
-                p.Name.ToLower().Contains(search)
-                || (p.Brand != null && p.Brand.ToLower().Contains(search)));
+            var query = _context.Products
+                .AsNoTracking()
+                .Include(p => p.Category)
+                .Include(p => p.Batches)
+                .Where(p => p.IsActive && p.TenantId == tenantId)
+                .Where(p => p.Batches.Any(b => b.CurrentQuantity > 0) || p.StockMovements.Any());
+
+            if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+            {
+                var search = request.SearchTerm.Trim().ToLower();
+                query = query.Where(p =>
+                    p.Name.ToLower().Contains(search)
+                    || (p.Brand != null && p.Brand.ToLower().Contains(search)));
+            }
+
+            if (request.CategoryId.HasValue)
+            {
+                query = query.Where(p => p.CategoryId == request.CategoryId.Value);
+            }
+
+            var products = await query.ToListAsync(cancellationToken);
+
+            var result = products.Select(p =>
+            {
+                var nextBatch = p.Batches
+                    .Where(b => b.ExpiryDate.HasValue)
+                    .OrderBy(b => b.ExpiryDate)
+                    .FirstOrDefault();
+
+                var nextExpiry = nextBatch?.ExpiryDate;
+                var status = nextBatch?.GetExpiryStatus() ?? ExpiryStatus.Normal;
+
+                return new PosicaoEstoqueDto(
+                    ProductId: p.Id,
+                    ProductName: p.Name,
+                    Description: p.Description,
+                    CategoryName: p.Category?.Name,
+                    Unit: p.Unit,
+                    UnitDescription: p.UnitDescription,
+                    Brand: p.Brand,
+                    CurrentStock: p.CurrentStock,
+                    MinimumStock: p.MinimumStock,
+                    IsBelowMinimum: p.IsBelowMinimumStock,
+                    IsUniqueItem: p.IsUniqueItem,
+                    NextExpiryDate: nextExpiry,
+                    ExpiryStatus: status,
+                    ActiveBatchesCount: p.Batches.Count(b => b.CurrentQuantity > 0),
+                    Notes: p.Notes
+                );
+            });
+
+            if (request.OnlyBelowMinimum == true)
+            {
+                result = result.Where(r => r.IsBelowMinimum);
+            }
+
+            if (request.FilterExpiry.HasValue)
+            {
+                result = result.Where(r => r.ExpiryStatus == request.FilterExpiry.Value);
+            }
+
+            return result.OrderBy(r => r.ProductName).ToList();
         }
-
-        if (request.CategoryId.HasValue)
+        catch (Exception ex) when (ex is DecoderFallbackException || ex is IndexOutOfRangeException || ex is ArgumentOutOfRangeException || ex is ArgumentException)
         {
-            query = query.Where(p => p.CategoryId == request.CategoryId.Value);
+            return new List<PosicaoEstoqueDto>();
         }
-
-        var products = await query.ToListAsync(cancellationToken);
-
-        var result = products.Select(p =>
-        {
-            var nextBatch = p.Batches
-                .Where(b => b.ExpiryDate.HasValue)
-                .OrderBy(b => b.ExpiryDate)
-                .FirstOrDefault();
-
-            var nextExpiry = nextBatch?.ExpiryDate;
-            var status = nextBatch?.GetExpiryStatus() ?? ExpiryStatus.Normal;
-
-            return new PosicaoEstoqueDto(
-                ProductId: p.Id,
-                ProductName: p.Name,
-                Description: p.Description,
-                CategoryName: p.Category?.Name,
-                Unit: p.Unit,
-                UnitDescription: p.UnitDescription,
-                Brand: p.Brand,
-                CurrentStock: p.CurrentStock,
-                MinimumStock: p.MinimumStock,
-                IsBelowMinimum: p.IsBelowMinimumStock,
-                IsUniqueItem: p.IsUniqueItem,
-                NextExpiryDate: nextExpiry,
-                ExpiryStatus: status,
-                ActiveBatchesCount: p.Batches.Count,
-                Notes: p.Notes
-            );
-        });
-
-        if (request.OnlyBelowMinimum == true)
-        {
-            result = result.Where(r => r.IsBelowMinimum);
-        }
-
-        if (request.FilterExpiry.HasValue)
-        {
-            result = result.Where(r => r.ExpiryStatus == request.FilterExpiry.Value);
-        }
-
-        return result.OrderBy(r => r.ProductName).ToList();
     }
 }
 
@@ -215,7 +222,7 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, L
         var query = _context.Products
             .AsNoTracking()
             .Include(p => p.Category)
-            .Include(p => p.Batches.Where(b => b.CurrentQuantity > 0))
+            .Include(p => p.Batches)
             .Where(p => p.IsActive && p.TenantId == tenantId);
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
@@ -256,7 +263,7 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, L
                 IsUniqueItem: p.IsUniqueItem,
                 NextExpiryDate: nextExpiry,
                 ExpiryStatus: status,
-                ActiveBatchesCount: p.Batches.Count,
+                ActiveBatchesCount: p.Batches.Count(b => b.CurrentQuantity > 0),
                 Notes: p.Notes
             );
         }).OrderBy(r => r.ProductName).ToList();

@@ -6,7 +6,7 @@
 
 <PageTitle>Fornecedores - Gestoque Pro</PageTitle>
 
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+<div class="g-page-header">
     <div>
         <h2 style="font-weight: 700; color: #1e293b; margin: 0;">Cadastro de Fornecedores</h2>
         <p style="color: #64748b; margin: 0; font-size: 0.95rem;">
@@ -14,13 +14,15 @@
         </p>
     </div>
 
-    <RadzenButton Text="Novo Fornecedor" Icon="add_circle" ButtonStyle="ButtonStyle.Primary" Click="@(() => showModal = true)" />
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+        <RadzenButton Text="Novo Fornecedor" Icon="add_circle" ButtonStyle="ButtonStyle.Primary" Click="@(() => showModal = true)" />
 
-    <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem;">
-        <label style="font-size: 0.85rem; font-weight: 600; color: #334155;">Status:</label>
-        <RadzenDropDown @bind-Value="statusFilter" Change="@OnStatusFilterChanged"
-                        Data="@statusFilterOptions" TextProperty="Text" ValueProperty="Value"
-                        Placeholder="Todos" Style="width: 180px;" />
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <label style="font-size: 0.85rem; font-weight: 600; color: #334155;">Status:</label>
+            <RadzenDropDown @bind-Value="statusFilter" Change="@OnStatusFilterChanged"
+                            Data="@statusFilterOptions" TextProperty="Text" ValueProperty="Value"
+                            Placeholder="Todos" Style="width: 160px;" />
+        </div>
     </div>
 </div>
 
@@ -32,7 +34,8 @@ else
 {
     <RadzenCard Style="background: white; border-radius: 8px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
         <RadzenDataGrid Data="@filteredSuppliers" TItem="SupplierDto" AllowPaging="true" PageSize="10" AllowSorting="true"
-                        AllowFiltering="true" FilterMode="FilterMode.Simple" EmptyText="Nenhum fornecedor cadastrado.">
+                        AllowFiltering="true" FilterMode="FilterMode.Simple" EmptyText="Nenhum fornecedor cadastrado."
+                        Responsive="true">
             <Columns>
                 <RadzenDataGridColumn Property="Name" Title="Razão Social / Nome Fantasia" Width="260px">
                     <Template Context="s">

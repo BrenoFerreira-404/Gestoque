@@ -81,6 +81,58 @@ if (!string.IsNullOrWhiteSpace(excelFilePath))
         if (movements > 0)
             Console.WriteLine($"Saídas da planilha importadas para {targetTenant.NomeFantasia}: {movements} movimentos.");
     }
+
+    Console.WriteLine("Banco de dados migrado e seed inicial concluído.");
+
+    await SanitizeInvalidTextDataAsync(context);
 }
 
-Console.WriteLine("Banco de dados migrado e seed inicial concluído.");
+static async Task SanitizeInvalidTextDataAsync(GestoqueDbContext context)
+{
+    Console.WriteLine("Verificando e corrigindo dados de texto inválidos...");
+
+    var fixedCount = 0;
+
+    var tables = new Dictionary<string, string[]>
+    {
+        ["Products"] = new[] { "Brand", "Description", "Name", "Notes", "UnitDescription" },
+        ["Batches"] = new[] { "Brand", "BatchNumber", "Notes" },
+        ["StockMovements"] = new[] { "Notes", "CreatedBy", "DocumentNumber" },
+        ["Suppliers"] = new[] { "Name", "CnpjCpf", "ContactPerson", "Email", "Phone" },
+        ["Tenants"] = new[] { "NomeFantasia", "RazaoSocial", "Cnpj", "Email", "Telefone", "LogoUrl" },
+        ["Categories"] = new[] { "Name", "Description", "ColorCode" },
+        ["Donations"] = new[] { "DonorName", "DonorContact", "Notes", "ReceiptNumber", "CreatedBy", "UpdatedBy" },
+        ["DonationItems"] = new[] { "Brand", "Notes" },
+    };
+
+    foreach (var (table, cols) in tables)
+    {
+        foreach (var col in cols)
+        {
+            try
+            {
+                var sql = $"UPDATE \"{table}\" SET \"{col}\" = regexp_replace(\"{col}\", '[^\\x20-\\x7E\\xA0-\\xFF]', '', 'g') WHERE \"{col}\" IS NOT NULL AND \"{col}\" <> '';";
+                var rows = await context.Database.ExecuteSqlRawAsync(sql);
+                if (rows > 0)
+                {
+                    fixedCount += rows;
+                    Console.WriteLine($"  Corrigidos {rows} registros em {table}.{col}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"  Aviso: não foi possível sanitizar {table}.{col}: {ex.Message}");
+            }
+        }
+    }
+
+    if (fixedCount > 0)
+    {
+        await context.SaveChangesAsync();
+        Console.WriteLine($"Sanitização concluída: {fixedCount} campos corrigidos.");
+    }
+    else
+    {
+        Console.WriteLine("Nenhum dado inválido encontrado.");
+    }
+}

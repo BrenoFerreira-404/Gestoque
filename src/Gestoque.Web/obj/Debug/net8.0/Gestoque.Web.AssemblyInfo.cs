@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Gestoque.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c6e593959ca224a7059ba15451627e5d08138bfc")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fbc421188aa66bfe487033c71713526c7ae624aa")]
 [assembly: System.Reflection.AssemblyProductAttribute("Gestoque.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Gestoque.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

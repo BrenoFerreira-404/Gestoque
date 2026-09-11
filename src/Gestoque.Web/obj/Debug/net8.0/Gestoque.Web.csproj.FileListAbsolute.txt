@@ -140,3 +140,10 @@ C:\Projetos_Oficial\Gestoque\src\Gestoque.Web\obj\Debug\net8.0\staticwebassets.b
 C:\Projetos_Oficial\Gestoque\src\Gestoque.Web\obj\Debug\net8.0\staticwebassets.development.json
 C:\Projetos_Oficial\Gestoque\src\Gestoque.Web\obj\Debug\net8.0\staticwebassets.build.endpoints.json
 C:\Projetos_Oficial\Gestoque\src\Gestoque.Web\obj\Debug\net8.0\swae.build.ex.cache
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Web\bin\Debug\net8.0\Microsoft.Extensions.Caching.Abstractions.dll
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Web\bin\Debug\net8.0\Microsoft.Extensions.Configuration.Abstractions.dll
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Web\bin\Debug\net8.0\Microsoft.Extensions.Primitives.dll
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Web\bin\Debug\net8.0\System.IO.Pipelines.dll
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Web\bin\Debug\net8.0\System.Text.Encodings.Web.dll
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Web\bin\Debug\net8.0\System.Text.Json.dll
+C:\Projetos_Oficial\Gestoque\src\Gestoque.Web\bin\Debug\net8.0\runtimes\browser\lib\net8.0\System.Text.Encodings.Web.dll

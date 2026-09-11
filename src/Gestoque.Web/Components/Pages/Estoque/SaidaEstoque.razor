@@ -7,7 +7,7 @@
 
 <PageTitle>Saída e Baixas - Gestoque Pro</PageTitle>
 
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+<div class="g-page-header">
     <div>
         <h2 style="font-weight: 700; color: #1e293b; margin: 0;">Saída de Estoque & Baixas Diárias</h2>
         <p style="color: #64748b; margin: 0; font-size: 0.95rem;">
@@ -89,7 +89,8 @@
     <RadzenCard Style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
         <h4 style="font-weight: 700; color: #1e293b; margin: 0 0 1.25rem 0;">Últimas Saídas Registradas</h4>
 
-        <RadzenDataGrid Data="@recentMovements" TItem="StockMovementDto" AllowPaging="true" PageSize="8" EmptyText="Nenhuma saída recente.">
+        <RadzenDataGrid Data="@recentMovements" TItem="StockMovementDto" AllowPaging="true" PageSize="8" EmptyText="Nenhuma saída recente."
+                        Responsive="true">
             <Columns>
                 <RadzenDataGridColumn Property="MovementDate" Title="Data" Width="95px">
                     <Template Context="mov">

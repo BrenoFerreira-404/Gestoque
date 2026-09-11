@@ -1,0 +1,77 @@
+.g-responsive-grid {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.g-filter-bar {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.g-filter-bar > div {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.g-filter-bar .rz-dropdown,
+.g-filter-bar .rz-datepicker {
+    min-width: 140px;
+    width: 100%;
+    max-width: 260px;
+}
+
+.g-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.g-page-header h2 {
+    margin: 0;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+@media (max-width: 768px) {
+    .g-page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .g-page-header .rz-button {
+        width: 100%;
+    }
+
+    .g-filter-bar {
+        width: 100%;
+    }
+
+    .g-filter-bar > div {
+        flex: 1 1 100%;
+    }
+
+    .g-filter-bar .rz-dropdown,
+    .g-filter-bar .rz-datepicker {
+        max-width: 100%;
+    }
+
+    .g-entry-layout,
+    .g-movements-layout,
+    .g-donation-layout {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (min-width: 992px) {
+    .g-entry-layout,
+    .g-movements-layout,
+    .g-donation-layout {
+        grid-template-columns: 1fr 1.2fr;
+    }
+}

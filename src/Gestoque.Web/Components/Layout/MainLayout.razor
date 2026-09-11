@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
 @inject IMediator Mediator
 @inject TenantSessionState TenantSession
+@inject ITenantPersistenceService TenantPersistence
 
 <RadzenComponents @rendermode="InteractiveServer" />
 <RadzenDialog />
@@ -52,27 +53,54 @@
 
     protected override async Task OnInitializedAsync()
     {
+        TenantSession.RegisterOnTenantChanged(StateHasChanged);
+        TenantSession.RegisterOnTenantsChanged(() => InvokeAsync(LoadTenantsAsync));
         await LoadTenantsAsync();
     }
 
     private async Task LoadTenantsAsync()
     {
-        tenants = await Mediator.Send(new GetTenantsQuery());
-        if (tenants.Any())
+        try
         {
-            if (!TenantSession.SelectedTenantId.HasValue || !tenants.Any(t => t.Id == TenantSession.SelectedTenantId.Value))
-            {
-                var first = tenants.First();
-                currentTenantId = first.Id;
-                TenantSession.SetTenant(first);
-            }
-            else
-            {
-                currentTenantId = TenantSession.SelectedTenantId.Value;
-            }
-
-            StateHasChanged();
+            tenants = await Mediator.Send(new GetTenantsQuery());
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[MainLayout] Erro ao carregar tenants: {ex.Message}");
+            tenants = new();
+        }
+
+        if (!tenants.Any())
+        {
+            currentTenantId = Guid.Empty;
+            StateHasChanged();
+            return;
+        }
+
+        Guid? persistedTenantId = null;
+        try
+        {
+            persistedTenantId = await TenantPersistence.GetLastSelectedTenantIdAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[MainLayout] Erro ao ler tenant persistido: {ex.Message}");
+        }
+
+        TenantDto? match = persistedTenantId is not null
+            ? tenants.FirstOrDefault(t => t.Id == persistedTenantId.Value)
+            : null;
+        if (match is null && TenantSession.SelectedTenantId is Guid sessionTenantId)
+        {
+            match = tenants.FirstOrDefault(t => t.Id == sessionTenantId);
+        }
+        match ??= tenants.First();
+
+        currentTenantId = match.Id;
+        TenantSession.SetTenant(match);
+        _ = TenantPersistence.SetLastSelectedTenantIdAsync(match.Id);
+
+        StateHasChanged();
     }
 
     private void OnTenantSelectionChanged(object value)
@@ -84,6 +112,7 @@
             {
                 currentTenantId = tenantId;
                 TenantSession.SetTenant(selected);
+                _ = TenantPersistence.SetLastSelectedTenantIdAsync(tenantId);
                 StateHasChanged();
             }
         }

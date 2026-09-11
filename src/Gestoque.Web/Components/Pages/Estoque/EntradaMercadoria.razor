@@ -7,7 +7,7 @@
 
 <PageTitle>Entrada de Mercadoria - Gestoque Pro</PageTitle>
 
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+<div class="g-page-header">
     <div>
         <h2 style="font-weight: 700; color: #1e293b; margin: 0;">Entrada de Mercadoria</h2>
         <p style="color: #64748b; margin: 0; font-size: 0.95rem;">
@@ -93,37 +93,42 @@
     <RadzenCard Style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
         <h4 style="font-weight: 700; color: #1e293b; margin: 0 0 1.25rem 0;">Últimas Entradas Registradas</h4>
 
-        <RadzenDataGrid Data="@recentMovements" TItem="StockMovementDto" AllowPaging="true" PageSize="8" EmptyText="Nenhuma entrada recente.">
-            <Columns>
-                <RadzenDataGridColumn Property="MovementDate" Title="Data" Width="100px">
-                    <Template Context="mov">
-                        <span>@mov.MovementDate.ToString("dd/MM/yyyy")</span>
-                    </Template>
-                </RadzenDataGridColumn>
+        <div class="g-responsive-grid">
+            <RadzenDataGrid Data="@recentMovements" TItem="StockMovementDto" AllowPaging="true" PageSize="8" EmptyText="Nenhuma entrada recente."
+                            Responsive="true">
+                <Columns>
+                    <RadzenDataGridColumn Property="MovementDate" Title="Data" Width="100px">
+                        <Template Context="mov">
+                            <span style="white-space: nowrap;">@mov.MovementDate.ToString("dd/MM/yyyy")</span>
+                        </Template>
+                    </RadzenDataGridColumn>
 
-                <RadzenDataGridColumn Property="ProductName" Title="Produto" Width="180px">
-                    <Template Context="mov">
-                        <strong>@mov.ProductName</strong>
-                        @if (!string.IsNullOrEmpty(mov.BatchNumber))
-                        {
-                            <span style="display: block; font-size: 0.75rem; color: #64748b;">@mov.BatchNumber</span>
-                        }
-                    </Template>
-                </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Property="ProductName" Title="Produto" Width="180px">
+                        <Template Context="mov">
+                            <div style="min-width: 0; overflow: hidden;">
+                                <strong style="display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@mov.ProductName</strong>
+                                @if (!string.IsNullOrEmpty(mov.BatchNumber))
+                                {
+                                    <span style="display: block; font-size: 0.75rem; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@mov.BatchNumber</span>
+                                }
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumn>
 
-                <RadzenDataGridColumn Property="Quantity" Title="Qtd" Width="90px">
-                    <Template Context="mov">
-                        <span style="color: #16a34a; font-weight: 700;">+@mov.Quantity.ToString("N0")</span>
-                    </Template>
-                </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Property="Quantity" Title="Qtd" Width="80px">
+                        <Template Context="mov">
+                            <span style="color: #16a34a; font-weight: 700; white-space: nowrap;">+@mov.Quantity.ToString("N0")</span>
+                        </Template>
+                    </RadzenDataGridColumn>
 
-                <RadzenDataGridColumn Property="ExpiryDate" Title="Validade" Width="110px">
-                    <Template Context="mov">
-                        <span>@(mov.ExpiryDate.HasValue ? mov.ExpiryDate.Value.ToString("dd/MM/yyyy") : "-")</span>
-                    </Template>
-                </RadzenDataGridColumn>
-            </Columns>
-        </RadzenDataGrid>
+                    <RadzenDataGridColumn Property="ExpiryDate" Title="Validade" Width="100px">
+                        <Template Context="mov">
+                            <span style="white-space: nowrap;">@(mov.ExpiryDate.HasValue ? mov.ExpiryDate.Value.ToString("dd/MM/yyyy") : "-")</span>
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </div>
     </RadzenCard>
 </div>
 

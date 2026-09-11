@@ -17,6 +17,7 @@ public class TenantSessionState
     public bool IsSuperAdmin => _currentTenantService.IsSuperAdmin;
 
     public event Action? OnTenantChanged;
+    public event Action? OnTenantsChanged;
 
     public void SetTenant(TenantDto tenant)
     {
@@ -32,29 +33,46 @@ public class TenantSessionState
         OnTenantChanged?.Invoke();
     }
 
+    public void NotifyTenantsChanged()
+    {
+        OnTenantsChanged?.Invoke();
+    }
+
     public IDisposable RegisterOnTenantChanged(Action callback)
     {
         OnTenantChanged += callback;
         return new Unsubscriber(this, callback);
     }
 
+    public IDisposable RegisterOnTenantsChanged(Action callback)
+    {
+        OnTenantsChanged += callback;
+        return new Unsubscriber(this, callback, tenantsEvent: true);
+    }
+
     private sealed class Unsubscriber : IDisposable
     {
         private readonly TenantSessionState _parent;
         private readonly Action _callback;
+        private readonly bool _tenantsEvent;
         private bool _disposed;
 
-        public Unsubscriber(TenantSessionState parent, Action callback)
+        public Unsubscriber(TenantSessionState parent, Action callback, bool tenantsEvent = false)
         {
             _parent = parent;
             _callback = callback;
+            _tenantsEvent = tenantsEvent;
         }
 
         public void Dispose()
         {
             if (!_disposed)
             {
-                _parent.OnTenantChanged -= _callback;
+                if (_tenantsEvent)
+                    _parent.OnTenantsChanged -= _callback;
+                else
+                    _parent.OnTenantChanged -= _callback;
+
                 _disposed = true;
             }
         }

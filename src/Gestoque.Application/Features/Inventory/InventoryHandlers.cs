@@ -4,6 +4,7 @@ using Gestoque.Domain.Entities;
 using Gestoque.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 
 namespace Gestoque.Application.Features.Inventory;
 
@@ -126,7 +127,7 @@ public class RegistrarSaidaCommandHandler : IRequestHandler<RegistrarSaidaComman
             throw new ArgumentException("A quantidade deve ser maior que zero.");
 
         var product = await _context.Products
-            .Include(p => p.Batches.Where(b => b.TenantId == tenantId && b.CurrentQuantity > 0))
+            .Include(p => p.Batches)
             .FirstOrDefaultAsync(p => p.Id == request.ProductId && p.TenantId == tenantId, cancellationToken)
             ?? throw new KeyNotFoundException("Produto não encontrado.");
 
@@ -335,60 +336,67 @@ public class GetDashboardKpisQueryHandler : IRequestHandler<GetDashboardKpisQuer
         var tenantId = _currentTenant.TenantId
             ?? throw new InvalidOperationException("Nenhuma empresa ativa selecionada.");
 
-        var products = await _context.Products
-            .AsNoTracking()
-            .Include(p => p.Batches.Where(b => b.TenantId == tenantId && b.CurrentQuantity > 0))
-            .Where(p => p.IsActive && p.TenantId == tenantId)
-            .ToListAsync(cancellationToken);
-
-        var totalProducts = products.Count;
-        var belowMinimum = products.Count(p => p.CurrentStock > 0 && p.IsBelowMinimumStock);
-
-        var expiringSoon = 0;
-        var expired = 0;
-
-        foreach (var p in products)
+        try
         {
-            var closestBatch = p.Batches
-                .Where(b => b.ExpiryDate.HasValue)
-                .OrderBy(b => b.ExpiryDate)
-                .FirstOrDefault();
+            var products = await _context.Products
+                .AsNoTracking()
+                .Include(p => p.Batches)
+                .Where(p => p.IsActive && p.TenantId == tenantId)
+                .ToListAsync(cancellationToken);
 
-            if (closestBatch != null)
+            var totalProducts = products.Count;
+            var belowMinimum = products.Count(p => p.CurrentStock > 0 && p.IsBelowMinimumStock);
+
+            var expiringSoon = 0;
+            var expired = 0;
+
+            foreach (var p in products)
             {
-                var status = closestBatch.GetExpiryStatus();
-                if (status == ExpiryStatus.ProximoVencimento || status == ExpiryStatus.Critico)
-                    expiringSoon++;
-                else if (status == ExpiryStatus.Vencido)
-                    expired++;
+                var closestBatch = p.Batches
+                    .Where(b => b.ExpiryDate.HasValue && b.CurrentQuantity > 0)
+                    .OrderBy(b => b.ExpiryDate)
+                    .FirstOrDefault();
+
+                if (closestBatch != null)
+                {
+                    var status = closestBatch.GetExpiryStatus();
+                    if (status == ExpiryStatus.ProximoVencimento || status == ExpiryStatus.Critico)
+                        expiringSoon++;
+                    else if (status == ExpiryStatus.Vencido)
+                        expired++;
+                }
             }
+
+            var registeredMovements = await _context.StockMovements
+                .AsNoTracking()
+                .Where(m => m.TenantId == tenantId)
+                .Select(m => new { m.MovementType, m.Quantity })
+                .ToListAsync(cancellationToken);
+
+            var totalEntradas = registeredMovements
+                .Where(m => m.MovementType == MovementType.Entrada)
+                .Sum(m => m.Quantity);
+
+            var totalSaidas = registeredMovements
+                .Where(m => m.MovementType == MovementType.Saida)
+                .Sum(m => m.Quantity);
+
+            var totalTenants = await _context.Tenants.CountAsync(t => t.IsActive, cancellationToken);
+
+            return new DashboardKpisDto(
+                TotalProducts: totalProducts,
+                ProductsBelowMinimum: belowMinimum,
+                ProductsExpiringSoon: expiringSoon,
+                ProductsExpired: expired,
+                TotalEntradasMonth: totalEntradas,
+                TotalSaidasMonth: totalSaidas,
+                ActiveTenantsCount: totalTenants
+            );
         }
-
-        var registeredMovements = await _context.StockMovements
-            .AsNoTracking()
-            .Where(m => m.TenantId == tenantId)
-            .Select(m => new { m.MovementType, m.Quantity })
-            .ToListAsync(cancellationToken);
-
-        var totalEntradas = registeredMovements
-            .Where(m => m.MovementType == MovementType.Entrada)
-            .Sum(m => m.Quantity);
-
-        var totalSaidas = registeredMovements
-            .Where(m => m.MovementType == MovementType.Saida)
-            .Sum(m => m.Quantity);
-
-        var totalTenants = await _context.Tenants.CountAsync(t => t.IsActive, cancellationToken);
-
-        return new DashboardKpisDto(
-            TotalProducts: totalProducts,
-            ProductsBelowMinimum: belowMinimum,
-            ProductsExpiringSoon: expiringSoon,
-            ProductsExpired: expired,
-            TotalEntradasMonth: totalEntradas,
-            TotalSaidasMonth: totalSaidas,
-            ActiveTenantsCount: totalTenants
-        );
+        catch (Exception ex) when (ex is DecoderFallbackException || ex is IndexOutOfRangeException || ex is ArgumentOutOfRangeException || ex is ArgumentException)
+        {
+            return new DashboardKpisDto(0, 0, 0, 0, 0, 0, 0);
+        }
     }
 
     private static DateTime ToUtc(DateTime value) =>

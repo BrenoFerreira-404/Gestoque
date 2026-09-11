@@ -3,6 +3,7 @@ using Gestoque.Application.DTOs;
 using Gestoque.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 
 namespace Gestoque.Application.Features.Tenants;
 
@@ -115,20 +116,28 @@ public class GetTenantsQueryHandler : IRequestHandler<GetTenantsQuery, List<Tena
 
     public async Task<List<TenantDto>> Handle(GetTenantsQuery request, CancellationToken cancellationToken)
     {
-        return await _context.Tenants
-            .AsNoTracking()
-            .OrderBy(t => t.NomeFantasia)
-            .Select(t => new TenantDto(
-                t.Id,
-                t.RazaoSocial,
-                t.NomeFantasia,
-                t.Cnpj,
-                t.Email,
-                t.Telefone,
-                t.IsActive,
-                t.CreatedAt
-            ))
-            .ToListAsync(cancellationToken);
+        try
+        {
+            return await _context.Tenants
+                .AsNoTracking()
+                .OrderBy(t => t.NomeFantasia)
+                .Select(t => new TenantDto(
+                    t.Id,
+                    t.RazaoSocial,
+                    t.NomeFantasia,
+                    t.Cnpj,
+                    t.Email,
+                    t.Telefone,
+                    t.IsActive,
+                    t.CreatedAt
+                ))
+                .ToListAsync(cancellationToken);
+        }
+        catch (Exception ex) when (ex is DecoderFallbackException || ex is IndexOutOfRangeException || ex is ArgumentOutOfRangeException || ex is ArgumentException)
+        {
+            Console.WriteLine($"[GetTenantsQuery] Falha ao carregar tenants: {ex.Message}");
+            return new List<TenantDto>();
+        }
     }
 }
 

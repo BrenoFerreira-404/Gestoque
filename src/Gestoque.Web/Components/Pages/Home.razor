@@ -214,7 +214,18 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _tenantChangedRegistration = TenantSession.RegisterOnTenantChanged(() => InvokeAsync(LoadDashboardDataAsync));
+        _tenantChangedRegistration = TenantSession.RegisterOnTenantChanged(() =>
+        {
+            try
+            {
+                InvokeAsync(LoadDashboardDataAsync);
+            }
+            catch
+            {
+                // silencioso para não quebrar o circuito no startup
+            }
+            StateHasChanged();
+        });
         await LoadDashboardDataAsync();
     }
 
@@ -230,10 +241,12 @@
             kpis = null;
             criticalItems = new();
             loading = false;
+            StateHasChanged();
             return;
         }
 
         loading = true;
+        StateHasChanged();
         try
         {
             kpis = await Mediator.Send(new GetDashboardKpisQuery());
@@ -248,15 +261,17 @@
                 .ToList();
             selectedCriticalProductIds.RemoveWhere(id => criticalItems.All(item => item.ProductId != id));
         }
-        catch
+        catch (Exception ex)
         {
             kpis = null;
             criticalItems = new();
-            throw;
+            Console.WriteLine($"[Home] Erro ao carregar dashboard: {ex.Message}");
+            NotificationService.Notify(NotificationSeverity.Error, "Erro ao carregar dashboard", ex.Message);
         }
         finally
         {
             loading = false;
+            StateHasChanged();
         }
     }
 

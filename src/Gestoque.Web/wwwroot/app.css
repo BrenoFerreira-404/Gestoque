@@ -25,8 +25,8 @@
     /* Layout */
     --rz-header-background-color: var(--rz-primary);
     --rz-header-color: var(--rz-on-primary);
-    --rz-sidebar-background-color: #1e293b;
-    --rz-sidebar-color: #e2e8f0;
+    --rz-sidebar-background-color: #f1f5f9;
+    --rz-sidebar-color: #334155;
     --rz-border-radius: 10px;
 
     /* Tipografia */

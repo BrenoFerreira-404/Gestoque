@@ -7,7 +7,7 @@
 
 <PageTitle>Empresas - Gestoque Pro</PageTitle>
 
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.75rem;">
+<div class="g-page-header">
     <div>
         <h2 style="font-weight: 700; color: #111827; margin: 0 0 0.25rem 0; font-size: 1.35rem;">Gestão Multi-Empresa</h2>
         <p style="color: #6b7280; margin: 0; font-size: 0.9rem;">
@@ -205,6 +205,7 @@ else
             showModal = false;
 
             await LoadTenantsAsync();
+            TenantSession.NotifyTenantsChanged();
         }
         catch (Exception ex)
         {
@@ -232,6 +233,7 @@ else
 
             empresaParaExcluir = null;
             await LoadTenantsAsync();
+            TenantSession.NotifyTenantsChanged();
             NotificationService.Notify(NotificationSeverity.Success, "Empresa excluída", "A empresa e seus dados foram removidos.");
         }
         catch (Exception ex)
