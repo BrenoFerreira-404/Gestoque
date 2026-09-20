@@ -174,8 +174,8 @@ else
 <!-- MODAL DE AJUSTE DE ESTOQUE (INVENTÁRIO FÍSICO) -->
 @if (selectedItemParaAjuste != null)
 {
-    <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; width: 100%; max-width: 95vw; display: flex; justify-content: center; padding: 1rem; pointer-events: none;">
-        <RadzenCard Style="background: white; border-radius: 12px; width: 450px; max-width: 95vw; padding: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2); pointer-events: auto;">
+    <div class="modal-overlay-fullscreen">
+        <RadzenCard Style="background: white; border-radius: 12px; width: 450px; max-width: 95vw; padding: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
             <h4 style="margin: 0 0 1rem 0; font-weight: 700; color: #0f172a;">Ajuste de Inventário Físico</h4>
             <p style="margin: 0 0 1rem 0; color: #475569; font-size: 0.9rem;">
                 Produto: <strong>@selectedItemParaAjuste.ProductName</strong><br />

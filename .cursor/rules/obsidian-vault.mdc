@@ -1,0 +1,14 @@
+---
+description: Usa o MCP do Obsidian para o vault Gestoque (notas, tarefas, ADRs)
+alwaysApply: true
+---
+
+# Vault Obsidian (MCP)
+
+O cofre do projeto está em `Gestoque/` e é acessado pelo MCP `obsidian` (`@istrejo/obsidian-mcp`). O Obsidian não precisa estar aberto.
+
+Antes de começar uma tarefa, leia via MCP: `02-Tarefas/Em-Progresso`, `02-Tarefas/Backlog` e `06-Agentes/Contexto-Claude`.
+
+Prefira as tools do MCP (`read_note`, `list_notes`, `search_content`, `create_note`, `update_note`, `get_backlinks`, `get_graph`) em vez de editar markdown do vault só com Read/Write. Caminhos são relativos ao cofre, sem `.md`.
+
+Atualize `02-Tarefas/*` e `06-Agentes/Memoria` quando o trabalho mudar o estado do projeto.
