@@ -41,8 +41,8 @@ Web :8081 — API :8080. Detalhe: [[01-Projeto/Docker]].
 ## Ferramentas
 
 - Este vault via MCP `obsidian` (`read_note`, `search_content`, `update_note`, ...). Paths relativos ao cofre, sem `.md`
-- Graphify no terminal
-- ai-memory http://127.0.0.1:8090
+- Graphify no terminal (`graphify-out/` na raiz do repo)
+- ai-memory http://127.0.0.1:49374
 
 ## Ler cedo
 

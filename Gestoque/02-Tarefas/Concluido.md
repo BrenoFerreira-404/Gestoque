@@ -8,7 +8,7 @@ Clean Architecture .NET 8, Docker Compose (db, migration, api, web), EF + Postgr
 
 ## Ferramentas de IA (2026-09)
 
-Vault em `Gestoque/`. MCP Cursor: `@istrejo/obsidian-mcp` (`.cursor/mcp.json`). Graphify. ai-memory em `:8090`. `CLAUDE.md` na raiz.
+Vault em `Gestoque/`. MCP Cursor: `@istrejo/obsidian-mcp` (`.cursor/mcp.json`). Graphify na raiz (`graphify-out/`). ai-memory em `:49374`. `CLAUDE.md` na raiz.
 
 ## Dominio e CQRS (2026-09)
 

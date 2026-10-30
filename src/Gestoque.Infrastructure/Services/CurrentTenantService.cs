@@ -5,7 +5,7 @@ namespace Gestoque.Infrastructure.Services;
 public class CurrentTenantService : ICurrentTenantService
 {
     public Guid? TenantId { get; private set; }
-    public bool IsSuperAdmin { get; private set; } = true; // Por padrão, o criador do sistema é SuperAdmin
+    public bool IsSuperAdmin { get; private set; }
 
     public void SetTenantId(Guid tenantId)
     {

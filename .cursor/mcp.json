@@ -7,6 +7,9 @@
       "env": {
         "OBSIDIAN_VAULT_PATH": "${workspaceFolder}/Gestoque"
       }
+    },
+    "ai-memory": {
+      "url": "http://127.0.0.1:49374/mcp"
     }
   }
 }

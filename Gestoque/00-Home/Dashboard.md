@@ -18,6 +18,7 @@ Indice completo: [[06-Agentes/Mapa-do-Vault]]
 
 ### Tarefas
 - [[02-Tarefas/Em-Progresso]]
+- [[02-Tarefas/Plano-Login]] — login SuperAdmin + Operator (aguardando aprovação)
 - [[02-Tarefas/Backlog]]
 - [[02-Tarefas/Concluido]]
 

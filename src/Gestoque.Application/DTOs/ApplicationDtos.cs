@@ -86,3 +86,22 @@ public record DashboardKpisDto(
     int ActiveTenantsCount
 );
 
+public record UserDto(
+    Guid Id,
+    string Email,
+    string DisplayName,
+    UserRole Role,
+    Guid? TenantId,
+    string? TenantName,
+    bool IsActive,
+    DateTime? LastLoginAt
+);
+
+public record LoginResultDto(
+    Guid UserId,
+    string Email,
+    string DisplayName,
+    UserRole Role,
+    Guid? TenantId
+);
+

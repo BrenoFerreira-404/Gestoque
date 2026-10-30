@@ -21,7 +21,7 @@
 
 - **Obsidian MCP** — `@istrejo/obsidian-mcp` via `.cursor/mcp.json` e `.mcp.json` (vault `Gestoque/`)
 - **Graphify** — grafo AST (`graphify` no terminal)
-- **ai-memory** — http://127.0.0.1:8090
+- **ai-memory** — http://127.0.0.1:49374
 
 ## Convencoes
 

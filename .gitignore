@@ -44,6 +44,7 @@ tools/*/obj/
 src/CLAUDE.md
 src/.claude/
 src/graphify-out/
+graphify-out/
 
 ## Test results
 TestResults/

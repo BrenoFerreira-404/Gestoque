@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Gestoque.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fbc421188aa66bfe487033c71713526c7ae624aa")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8f92c3a772696be94bfd8ad4128f07b7d63e78e9")]
 [assembly: System.Reflection.AssemblyProductAttribute("Gestoque.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Gestoque.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

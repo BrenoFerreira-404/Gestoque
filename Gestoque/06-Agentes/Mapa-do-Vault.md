@@ -24,6 +24,7 @@ Indice de todas as notas do cofre. Atualize quando criar pasta nova.
 
 ## Tarefas
 - [[02-Tarefas/Em-Progresso]]
+- [[02-Tarefas/Plano-Login]]
 - [[02-Tarefas/Backlog]]
 - [[02-Tarefas/Concluido]]
 

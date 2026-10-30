@@ -4,7 +4,7 @@
 
 ## Alta prioridade
 
-- [ ] Autenticacao e autorizacao (JWT / Identity) — tenant no token (ADR-002)
+- [ ] Autenticacao e autorizacao — ver plano detalhado [[Plano-Login]] (não iniciar até aprovar o documento)
 - [ ] Completar API REST no mesmo nivel da Web (GET/PUT produtos, GET tenant por id, GET estoque por produto)
 - [ ] Auditoria com usuario real (CreatedBy/UpdatedBy)
 - [ ] Notificacoes de estoque baixo / vencimento (hoje so KPI e filtro na tela)

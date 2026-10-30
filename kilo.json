@@ -1,0 +1,20 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "mcp": {
+    "obsidian": {
+      "type": "local",
+      "command": ["npx.cmd", "-y", "@istrejo/obsidian-mcp"],
+      "environment": {
+        "OBSIDIAN_VAULT_PATH": "C:/Projetos_Oficial/Gestoque/Gestoque"
+      },
+      "enabled": true,
+      "timeout": 30000
+    }
+  },
+  "permission": {
+    "obsidian_*": "allow",
+    "obsidian_*delete*": "ask",
+    "obsidian_*remove*": "ask"
+  },
+  "instructions": ["CLAUDE.md", "Gestoque/06-Agentes/Contexto-Claude.md"]
+}

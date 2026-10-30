@@ -13,6 +13,7 @@ public interface IGestoqueDbContext
     DbSet<Supplier> Suppliers { get; }
     DbSet<Donation> Donations { get; }
     DbSet<DonationItem> DonationItems { get; }
+    DbSet<User> Users { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -1,0 +1,96 @@
+{
+  "hooks": {
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "command": "docker exec ai-memory ai-memory --data-dir /data hook --event session-end --agent claude-code --server-url http://127.0.0.1:8090",
+            "timeout": 15,
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "command": "docker exec ai-memory ai-memory --data-dir /data hook --event user-prompt-submit --agent claude-code --server-url http://127.0.0.1:8090",
+            "timeout": 15,
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "command": "docker exec ai-memory ai-memory --data-dir /data hook --event stop --agent claude-code --server-url http://127.0.0.1:8090",
+            "timeout": 15,
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "docker exec ai-memory ai-memory --data-dir /data hook --event session-start --agent claude-code --server-url http://127.0.0.1:8090",
+            "timeout": 15,
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "docker exec ai-memory ai-memory --data-dir /data hook --event post-tool-use --agent claude-code --server-url http://127.0.0.1:8090",
+            "timeout": 15,
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "docker exec ai-memory ai-memory --data-dir /data hook --event pre-tool-use --agent claude-code --server-url http://127.0.0.1:8090",
+            "timeout": 15,
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      },
+      {
+        "matcher": "Bash|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "C:/Users/heitorhog/.local/bin/graphify.EXE hook-guard search",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "C:/Users/heitorhog/.local/bin/graphify.EXE hook-guard read",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
